@@ -57,7 +57,7 @@ struct HuffNode {
   }
 
   bool is_leaf() {
-    return  (!left_ && !right_); //is a leaf if left == NULL and right == NULL
+    return !left_;  //left_ is NULL means right_ is also,for huf tree it is a full binary tree,every internal node is of degree 2
   }
   
   /////The comparison operator used to order the priority queue.
@@ -242,16 +242,6 @@ private:
   FrequencyHashMap&      frequency_map_;
 };
 
-
-//TODO this can be speeded up using hash table
-void char2bit(unsigned char c, int r[]) {
-  int num = c;
-  for (int i = 7; i >= 0; i--) {
-    r[i] = num % 2;
-    num = (num >> 1); // num = num / 2
-  }
-}
-
 /** Specitialized HuffTree for decoding*/
 template <typename _KeyType>
 class HuffTree<_KeyType, decode_hufftree>
@@ -289,49 +279,22 @@ public:
     do_gen_encode(root->right(), encode);
     encode.erase(encode.size() - 1, 1);
   }
- 
+
   void decode_file() 
   {
-    //std::string encode;
-    //do_gen_encode(root_, encode);
-    //std::cout << "decoding file\n";
     Buffer writer(outfile_);
     unsigned char left_bit, last_byte;
     reader_.read_byte(left_bit);
     reader_.read_byte(last_byte);
+    //--------------------------------------decode each byte
     Node* cur_node = root();
     unsigned char c;
-    int bits[8];
-    //TODO speed up char2bit()
-    while(reader_.read_byte(c)) {
-      char2bit(c, bits);
-      for (int i = 0; i < 8; i++) { 
-        if (bits[i] == 0)     //0 to the left
-          cur_node = cur_node->left_;  //TODO left() really slow?
-        else
-          cur_node = cur_node->right_;
-        if (cur_node->is_leaf()) {
-          writer.write_byte(cur_node->key_);
-          cur_node = root();
-        }
-      }
-    }
-    //std::cout << "left bit when decoding file is " << int(left_bit) <<"\n";
-    if (left_bit) {
-      char2bit(last_byte, bits);
-      //fixed bug here
-      for (int i = 0; i < (8 - left_bit); i++) {  //well must be this for we are not sure how many characters are eoncded may be 1 or may be 2
-        if (bits[i] == 0)                         //so we can not stop when finding one,and we must stop when at 8 - left_bit,for if continuing
-          cur_node = cur_node->left_;             //we might decode others which is not acceptable
-        else
-          cur_node = cur_node->right_;
-        if (cur_node->is_leaf()) {
-          writer.write_byte(cur_node->key_);
-          cur_node = root();
-        }
-      }
-    }
-    writer.flush_buf();
+    while(reader_.read_byte(c)) 
+      decode_byte(c, writer, cur_node);
+    //--------------------------------------deal with the last byte
+    if (left_bit)
+      decode_byte(last_byte, writer, cur_node, (8 - left_bit));
+      writer.flush_buf();
     fflush(outfile_);
   }
 
@@ -347,6 +310,22 @@ private:
     root = new Node();
     do_build_tree(root->left_);
     do_build_tree(root->right_);
+  }
+
+  void decode_byte(unsigned char c, Buffer& writer, Node*& cur_node, int bit_num = 8) 
+  {
+    unsigned char mask = 128; //1 << 7
+    for (int i = 0; i < bit_num; i++) {
+      if ((c & mask) == 0)  //--------------bit i of c is 0,turn left
+        cur_node = cur_node->left_;
+      else
+        cur_node = cur_node->right_;
+      mask >>= 1;
+      if (cur_node->is_leaf()) {
+        writer.write_byte(cur_node->key_);
+        cur_node = root();
+      }
+    }
   }
 private:
   FILE*  infile_;
