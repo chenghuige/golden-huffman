@@ -1,5 +1,6 @@
 next_inactive up previous
 
+https://golden-huffman.googlecode.com/wiki/index.html
 
 常用文本压缩算法原理及实现
 
