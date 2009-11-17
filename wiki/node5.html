@@ -1,0 +1,246 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2002-2-1 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>实验结果</TITLE>
+<META NAME="description" CONTENT="实验结果">
+<META NAME="keywords" CONTENT="compresss">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=GBK">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2-1">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="compresss.css">
+
+<LINK REL="previous" HREF="node4.html">
+<LINK REL="up" HREF="node3.html">
+<LINK REL="next" HREF="node6.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html58"
+  HREF="node6.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html56"
+  HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html52"
+  HREF="node4.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/usr/share/latex2html/icons/prev.png"></A>   
+<BR>
+<B> Next:</B> <A NAME="tex2html59"
+  HREF="node6.html">About this document ...</A>
+<B> Up:</B> <A NAME="tex2html57"
+  HREF="node3.html">huffman压缩</A>
+<B> Previous:</B> <A NAME="tex2html53"
+  HREF="node4.html">原理简介</A>
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00032000000000000000">
+实验结果</A>
+</H2>
+当前在windowsXP+vmware+ubuntu8.04,CPU1.86GHZ,1G MEM,环境下测试, 采用g++ 4.2.4 -O2 编译选项,注意如果采用g++ 4.4.2程序运行时间会有显著减少,对于
+24M的文件压缩解压缩总共时间会减少大概1s.
+
+<P>
+
+<UL>
+<LI>对于simple.log得到如下编码结果  ./utest simple.log
+
+<P>
+The input file is simple.log
+
+<P>
+The total bytes num is 27
+
+<P>
+The total number of different characters in the file is 13
+
+<P>
+The average encoding length per character is 3.48148
+
+<P>
+So not consider the header the approximate compressing ration should be 0.435185
+
+<P>
+The encoding map is as below
+<DIV ALIGN="LEFT">
+</DIV><PRE>
+Character   Times    Frequence    EncodeLength   Encode                        
+
+\n          2        0.0741       4              1011                          
+            5        0.185        2              00                            
+.           3        0.111        3              010                           
+I           1        0.037        5              11010                         
+a           4        0.148        3              100                           
+b           2        0.0741       4              1100                          
+c           1        0.037        5              11011                         
+d           2        0.0741       4              1010                          
+e           1        0.037        5              11110                         
+l           1        0.037        5              11111                         
+n           3        0.111        3              011                           
+o           1        0.037        5              11100                         
+v           1        0.037        5              11101
+</PRE>
+<DIV ALIGN="LEFT">
+</DIV>
+
+<P>
+
+<DIV ALIGN="CENTER">
+
+<P><A NAME="fig:huftree"></A></P>
+<DIV ALIGN="CENTER"></DIV><SMALL CLASS="SMALL"><IMG
+  WIDTH="1809" HEIGHT="656" ALIGN="BOTTOM" BORDER="0"
+ SRC="./tree.jpg"
+ ALT="Image tree">
+</SMALL>
+</DIV>
+
+<P>
+</LI>
+<LI>对于24M的big.log进行压缩解压缩过程利用google test验证正确性及运行时间./utest
+第一个test是采用基于字符的huffman编码压缩,只是为了测试运行时间<SPAN  CLASS="textbf">1.445s</SPAN>.
+
+<P>
+第二个test是紧接着进行解码解压缩得到<SPAN  CLASS="textbf">big.log.crs</SPAN>,也只是测试速度<SPAN  CLASS="textbf">1.984s</SPAN>.
+
+<P>
+最后一个test是对比原始文件big.log和压缩然后解压缩得到的最终文件big.log.crs.de, 测试结果是完全一致,正确恢复原文件内容. 
+
+<P>
+压缩得到的big.log.crs大为 <SPAN  CLASS="textbf">13M</SPAN>,压缩率13/24=<SPAN  CLASS="textbf">0.541</SPAN>和我们的预期<SPAN  CLASS="textbf">4.3231/8=0.540388</SPAN>是一致的.
+
+<P>
+该文档的部分编码表表如下, 出现的字符数也即<SPAN  CLASS="textbf">编码表大小</SPAN>不会大于<SPAN  CLASS="textbf">256</SPAN>, 因为我们是<SPAN  CLASS="textbf">基于字符的编码</SPAN>, <SPAN  CLASS="textbf">8位</SPAN>一个字符.
+
+<P>
+<DIV ALIGN="LEFT">
+The input file is big.log
+</DIV>
+<P>
+<DIV ALIGN="LEFT">The total bytes num is 24292128
+</DIV>
+<P>
+<DIV ALIGN="LEFT">The total number of different characters in the file is 99
+</DIV>
+<P>
+<DIV ALIGN="LEFT">The average encoding length per character is 4.3231
+</DIV>
+<P>
+<DIV ALIGN="LEFT">So not consider the header the approximate compressing ration should be 0.540388
+</DIV>
+<P>
+<DIV ALIGN="LEFT">The encoding map:
+</DIV><PRE>
+Character      Times          Frequence     EncodeLength    Encode                        
+
+\n             456549         0.0188        6               110100                        
+              70             2.88e-06      18              011001100000111001            
+               6731035        0.277         2               10                            
+!              2362           9.72e-05      13              0110011000000                 
+"              59322          0.00244       9               110101110                     
+#              335            1.38e-05      16              0000111110000111              
+$              1549           6.38e-05      14              11001101111000                
+%              1423           5.86e-05      14              01100110000101                
+&amp;              1745           7.18e-05      14              11001101111001                
+'              50639          0.00208       9               110011001                     
+(              17318          0.000713      10              0000101010                    
+)              17288          0.000712      10              0000100011                    
+*              12959          0.000533      11              11001101001                   
++              671            2.76e-05      15              011001100000110               
+,              169157         0.00696       7               0101111                       
+-              149271         0.00614       7               0000110                       
+.              243628         0.01          7               1111110                       
+/              12387          0.00051       11              11001101000                   
+0              20424          0.000841      10              0101110100                    
+1              59394          0.00244       9               110101111                     
+2              19924          0.00082       10              0000111111                    
+3              14963          0.000616      11              11010110111                   
+4              14220          0.000585      11              11010110000                   
+5              21064          0.000867      10              0101110111                    
+6              27586          0.00114       10              1100110110                    
+7              14629          0.000602      11              11010110100                   
+8              16253          0.000669      10              0000100000                    
+9              35422          0.00146       9               000010100
+</PRE>
+<DIV ALIGN="LEFT">
+</DIV>
+
+<P>
+压缩解压缩过程以及最后文件内容测试结果如下:
+<DIV ALIGN="LEFT">
+</DIV><PRE>
+allen:~/study/data_structure/huffman/huffman_c++/final/final/build/bin$ ./utest
+[==========] Running 3 tests from 3 test cases.
+[----------] Global test environment set-up.
+[----------] 1 test from huff_char_compress
+[ RUN      ] huff_char_compress.perf
+[       OK ] huff_char_compress.perf (1445 ms)
+[----------] 1 test from huff_char_compress (1445 ms total)
+
+[----------] 1 test from huff_char_decompress
+[ RUN      ] huff_char_decompress.perf
+[       OK ] huff_char_decompress.perf (1984 ms)
+[----------] 1 test from huff_char_decompress (1984 ms total)
+
+[----------] 1 test from huff_char
+[ RUN      ] huff_char.func
+[       OK ] huff_char.func (555 ms)
+[----------] 1 test from huff_char (555 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 3 test cases ran. (3984 ms total)
+[  PASSED  ] 3 tests.
+</PRE>
+<DIV ALIGN="LEFT">
+</DIV>
+
+<P>
+</LI>
+</UL>
+
+<P>
+
+<DIV CLASS="navigation"><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html58"
+  HREF="node6.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html56"
+  HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html52"
+  HREF="node4.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/usr/share/latex2html/icons/prev.png"></A>   
+<BR>
+<B> Next:</B> <A NAME="tex2html59"
+  HREF="node6.html">About this document ...</A>
+<B> Up:</B> <A NAME="tex2html57"
+  HREF="node3.html">huffman压缩</A>
+<B> Previous:</B> <A NAME="tex2html53"
+  HREF="node4.html">原理简介</A></DIV>
+<!--End of Navigation Panel-->
+<ADDRESS>
+allen
+2009-11-18
+</ADDRESS>
+</BODY>
+</HTML>

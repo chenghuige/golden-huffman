@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2002-2-1 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>原理简介</TITLE>
+<META NAME="description" CONTENT="原理简介">
+<META NAME="keywords" CONTENT="compresss">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=GBK">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2-1">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="compresss.css">
+
+<LINK REL="next" HREF="node5.html">
+<LINK REL="previous" HREF="node3.html">
+<LINK REL="up" HREF="node3.html">
+<LINK REL="next" HREF="node5.html">
+</HEAD>
+
+<BODY >
+
+<DIV CLASS="navigation"><!--Navigation Panel-->
+<A NAME="tex2html50"
+  HREF="node5.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/usr/share/latex2html/icons/next.png"></A> 
+<A NAME="tex2html48"
+  HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/usr/share/latex2html/icons/up.png"></A> 
+<A NAME="tex2html42"
+  HREF="node3.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/usr/share/latex2html/icons/prev.png"></A>   
+<BR>
+<B> Next:</B> <A NAME="tex2html51"
+  HREF="node5.html">实验结果</A>
+<B> Up:</B> <A NAME="tex2html49"
+  HREF="node3.html">huffman压缩</A>
+<B> Previous:</B> <A NAME="tex2html43"
+  HREF="node3.html">huffman压缩</A>
+<BR>
+<BR></DIV>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00031000000000000000">
+原理简介</A>
+</H2>
+ 
+<UL>
+<LI>huffman压缩是数据结构课程中的常见内容, 是典型的贪心算法与二叉树的应用.
+
+<P>
+</LI>
+<LI>压缩前, 以ascii文本为例, 每个字符如a,b...都采用等长的8位acii码进行编码.
+
+<P>
+</LI>
+<LI>huffman压缩的核心思想就是改为不等长编码, 使得出现较多的字符用较短的编码表示, 从而达到文本压缩的效果.
+
+<P>
+</LI>
+<LI>为了能够顺利的解码, 需要确保任意一个字符的编码不是另一个字符的前缀. 否则如a编码01,b编码位010, 那么在解码的过程中会出现岐义.
+
+<P>
+</LI>
+<LI>因此问题转化为二叉树的最小带权外部路径长度问题. 对于一个二叉树它的每个叶子对应一个字符具体编码，编码值由从根到叶子的路径决定，例如
+       可以假定向左代表0,向右代表1. 每个叶子有一个权重, 可以是对应字符出现的次数或者频度.
+
+<P>
+</LI>
+<LI>具体的证明可以参考数据结构书籍, 本质是对于最优的二叉树其权重最小的两个叶子一定在最底端,
+       然后问题规模可以等价缩小(去掉这两个叶子并用它们的权重和作为替代叶子的同等条件规模减小的问题), 归纳证明.
+
+<P>
+</LI>
+<LI>算法过程是贪心的, 开始集合是所有的叶子节点权重, 每次取出两个权重最小的节点, 合并为一个内部节点并将其放回集合中, 直到集合中只有一个节点, 根节点.
+       即建好了这棵最优的二叉树, 也即得到了所有字符的huffman编码.
+ 
+</LI>
+</UL>
+
+<P>
+<BR><HR>
+<ADDRESS>
+allen
+2009-11-18
+</ADDRESS>
+</BODY>
+</HTML>
