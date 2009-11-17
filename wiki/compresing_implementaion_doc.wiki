@@ -1,0 +1,166 @@
+next_inactive up previous
+
+
+常用文本压缩算法原理及实现
+
+pku_goldenlock@qq.com
+
+November 18, 2009
+
+引言
+
+本文主要参考«深入搜索引擎»的第二章文本压缩, 介绍各种压缩算法原理, 并接合我所写的基于C++模板的glzip库中对各种压缩算法的实现. 给出实验结果和对比分析. 书中有详细的理论分析, 这里主要侧重实现算法以及实验结果分析. 这里的我的实验都会用到两个测试文本, 一个是简单的simple.log, 另一个是大小为24M的文本big.log. 将会介绍:
+
+   1. huffman压缩
+   2. 范式huffman压缩
+   3. 算术压缩
+   4. 基于词的压缩
+
+实验文本simple.log内容
+
+I love nba and cba
+and ...
+
+huffman压缩
+原理简介
+
+    * huffman压缩是数据结构课程中的常见内容, 是典型的贪心算法与二叉树的应用.
+
+    * 压缩前, 以ascii文本为例, 每个字符如a,b...都采用等长的8位acii码进行编码.
+
+    * huffman压缩的核心思想就是改为不等长编码, 使得出现较多的字符用较短的编码表示, 从而达到文本压缩的效果.
+
+    * 为了能够顺利的解码, 需要确保任意一个字符的编码不是另一个字符的前缀. 否则如a编码01,b编码位010, 那么在解码的过程中会出现岐义.
+
+    * 因此问题转化为二叉树的最小带权外部路径长度问题. 对于一个二叉树它的每个叶子对应一个字符具体编码，编码值由从根到叶子的路径决定，例如 可以假定向左代表0,向右代表1. 每个叶子有一个权重, 可以是对应字符出现的次数或者频度.
+
+    * 具体的证明可以参考数据结构书籍, 本质是对于最优的二叉树其权重最小的两个叶子一定在最底端, 然后问题规模可以等价缩小(去掉这两个叶子并用它们的权重和作为替代叶子的同等条件规模减小的问题), 归纳证明.
+
+    * 算法过程是贪心的, 开始集合是所有的叶子节点权重, 每次取出两个权重最小的节点, 合并为一个内部节点并将其放回集合中, 直到集合中只有一个节点, 根节点. 即建好了这棵最优的二叉树, 也即得到了所有字符的huffman编码.
+
+实验结果
+当前在windowsXP+vmware+ubuntu8.04,CPU1.86GHZ,1G MEM,环境下测试, 采用g++ 4.2.4 -O2 编译选项,注意如果采用g++ 4.4.2程序运行时间会有显著减少,对于 24M的文件压缩解压缩总共时间会减少大概1s.
+
+    * 对于simple.log得到如下编码结果 ./utest simple.log
+
+      The input file is simple.log
+
+      The total bytes num is 27
+
+      The total number of different characters in the file is 13
+
+      The average encoding length per character is 3.48148
+
+      So not consider the header the approximate compressing ration should be 0.435185
+
+      The encoding map is as below
+
+      Character   Times    Frequence    EncodeLength   Encode                        
+
+      \n          2        0.0741       4              1011                          
+                  5        0.185        2              00                            
+      .           3        0.111        3              010                           
+      I           1        0.037        5              11010                         
+      a           4        0.148        3              100                           
+      b           2        0.0741       4              1100                          
+      c           1        0.037        5              11011                         
+      d           2        0.0741       4              1010                          
+      e           1        0.037        5              11110                         
+      l           1        0.037        5              11111                         
+      n           3        0.111        3              011                           
+      o           1        0.037        5              11100                         
+      v           1        0.037        5              11101
+
+      Image tree
+
+    * 对于24M的big.log进行压缩解压缩过程利用google test验证正确性及运行时间./utest 第一个test是采用基于字符的huffman编码压缩,只是为了测试运行时间1.445s.
+
+      第二个test是紧接着进行解码解压缩得到big.log.crs,也只是测试速度1.984s.
+
+      最后一个test是对比原始文件big.log和压缩然后解压缩得到的最终文件big.log.crs.de, 测试结果是完全一致,正确恢复原文件内容.
+
+      压缩得到的big.log.crs大为 13M,压缩率13/24=0.541和我们的预期4.3231/8=0.540388是一致的.
+
+      该文档的部分编码表表如下, 出现的字符数也即编码表大小不会大于256, 因为我们是基于字符的编码, 8位一个字符.
+
+      The input file is big.log
+
+      The total bytes num is 24292128
+
+      The total number of different characters in the file is 99
+
+      The average encoding length per character is 4.3231
+
+      So not consider the header the approximate compressing ration should be 0.540388
+
+      The encoding map:
+
+      Character      Times          Frequence     EncodeLength    Encode                        
+
+      \n             456549         0.0188        6               110100                        
+                    70             2.88e-06      18              011001100000111001            
+                     6731035        0.277         2               10                            
+      !              2362           9.72e-05      13              0110011000000                 
+      "              59322          0.00244       9               110101110                     
+      #              335            1.38e-05      16              0000111110000111              
+      $              1549           6.38e-05      14              11001101111000                
+      %              1423           5.86e-05      14              01100110000101                
+      &              1745           7.18e-05      14              11001101111001                
+      '              50639          0.00208       9               110011001                     
+      (              17318          0.000713      10              0000101010                    
+      )              17288          0.000712      10              0000100011                    
+      *              12959          0.000533      11              11001101001                   
+      +              671            2.76e-05      15              011001100000110               
+      ,              169157         0.00696       7               0101111                       
+      -              149271         0.00614       7               0000110                       
+      .              243628         0.01          7               1111110                       
+      /              12387          0.00051       11              11001101000                   
+      0              20424          0.000841      10              0101110100                    
+      1              59394          0.00244       9               110101111                     
+      2              19924          0.00082       10              0000111111                    
+      3              14963          0.000616      11              11010110111                   
+      4              14220          0.000585      11              11010110000                   
+      5              21064          0.000867      10              0101110111                    
+      6              27586          0.00114       10              1100110110                    
+      7              14629          0.000602      11              11010110100                   
+      8              16253          0.000669      10              0000100000                    
+      9              35422          0.00146       9               000010100
+
+      压缩解压缩过程以及最后文件内容测试结果如下:
+
+      allen:~/study/data_structure/huffman/huffman_c++/final/final/build/bin$ ./utest
+      [==========] Running 3 tests from 3 test cases.
+      [----------] Global test environment set-up.
+      [----------] 1 test from huff_char_compress
+      [ RUN      ] huff_char_compress.perf
+      [       OK ] huff_char_compress.perf (1445 ms)
+      [----------] 1 test from huff_char_compress (1445 ms total)
+
+      [----------] 1 test from huff_char_decompress
+      [ RUN      ] huff_char_decompress.perf
+      [       OK ] huff_char_decompress.perf (1984 ms)
+      [----------] 1 test from huff_char_decompress (1984 ms total)
+
+      [----------] 1 test from huff_char
+      [ RUN      ] huff_char.func
+      [       OK ] huff_char.func (555 ms)
+      [----------] 1 test from huff_char (555 ms total)
+
+      [----------] Global test environment tear-down
+      [==========] 3 tests from 3 test cases ran. (3984 ms total)
+      [  PASSED  ] 3 tests.
+
+About this document ...
+常用文本压缩算法原理及实现
+
+This document was generated using the LaTeX2HTML translator Version 2002-2-1 (1.71)
+
+Copyright © 1993, 1994, 1995, 1996, Nikos Drakos, Computer Based Learning Unit, University of Leeds.
+Copyright © 1997, 1998, 1999, Ross Moore, Mathematics Department, Macquarie University, Sydney.
+
+The command line arguments were:
+latex2html -split 0 compresss.tex
+
+The translation was initiated by allen on 2009-11-18
+next_inactive up previous
+allen 2009-11-18
