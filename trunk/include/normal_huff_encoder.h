@@ -57,6 +57,7 @@ public:
   typedef typename TypeTraits<_KeyType>::FrequencyHashMap        FrequencyHashMap;
   typedef typename TypeTraits<_KeyType>::EncodeHashMap           EncodeHashMap;
   typedef typename TypeTraits<_KeyType>::type_catergory          type_catergory;
+  typedef EncodeHuffTree<_KeyType>   Tree;
 public:
   //----the specific encoder like HuffEncoder or CanonicalEncoder will decide the outfile name and open it
   NormalHuffEncoder(const std::string& infile_name, std::string& outfile_name) 
@@ -75,11 +76,10 @@ public:
   ///得到所有符号/单词的编码 
   void gen_encode() {
     //------------------------now the frequency_map_ is ready we can create the HuffTree
-    phuff_tree_ = new HuffTree<_KeyType>(this->encode_map_, this->frequency_map_);   
+    phuff_tree_ = new Tree(this->encode_map_, this->frequency_map_);   
     phuff_tree_->gen_encode(); 
     
-    //#ifndef NDEBUG   //TODO why #ifdef DEBUG not work?
-    #ifdef DEBUG
+    #ifdef DEBUG2  //DEBUG2 means dumping log while DEBUG means using gtest checking 
       print_log();
     #endif
   }
@@ -98,7 +98,7 @@ public:
     phuff_tree_->serialize_tree(this->outfile_);
   }
 private:
-  HuffTree<_KeyType>* phuff_tree_;  //HuffEnocder use a HuffTree to help gen encode
+  Tree* phuff_tree_;  //HuffEnocder use a HuffTree to help gen encode
 };
 
 //--------------------------------------------------------------------------NormalHuffDecoder
@@ -108,7 +108,7 @@ private:
 template<typename _KeyType>
 class NormalHuffDecoder : public Decoder<_KeyType> {
 public:
-  typedef HuffTree<_KeyType, decode_hufftree>   Tree;
+  typedef DecodeHuffTree<_KeyType>   Tree;
 public:
   NormalHuffDecoder(const std::string& infile_name, std::string& outfile_name)
       : Decoder<_KeyType>(infile_name, outfile_name){
