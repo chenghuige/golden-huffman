@@ -1,5 +1,20 @@
-#ifndef _TYPE_TRAITS_H
-#define _TYPE_TRAITS_H
+/** 
+ *  ==============================================================================
+ * 
+ *          \file   type_traits.h
+ *
+ *        \author   pku_goldenlock@qq.com
+ *
+ *          \date   2009-11-18 16:12:13.356033
+ *  
+ *   Description:   Provide the all type info for Encoder and Decoder
+ *                  especailly for dealing with both char based and word/string
+ *                  based compressing, decompressing
+ *  ==============================================================================
+ */
+
+#ifndef TYPE_TRAITS_H
+#define TYPE_TRAITS_H
 
 #ifdef __GNUC__
 #include <ext/hash_map>
@@ -63,4 +78,4 @@ public:
 }   //end of namespace glzip
 //-----------------------------------------------------------------------------
 
-#endif  //end of _TYPE_TRAITS_H
+#endif  //end of TYPE_TRAITS_H

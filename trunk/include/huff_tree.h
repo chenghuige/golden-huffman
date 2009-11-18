@@ -1,3 +1,25 @@
+/** 
+ *  ==============================================================================
+ * 
+ *          \file   type_traits.h
+ *
+ *        \author   pku_goldenlock@qq.com
+ *
+ *          \date   2009-11-18 16:12:13.356033
+ *  
+ *   Description:   Class HuffTree and HuffNode
+ *                  
+ *                  To really create a huff tree as a binary tree for helping 
+ *                  NormalHuffEncoder and NormaHuffDecoder
+ *
+ *                  HuffTree<_keyType,_treeType = encode_hufftree>
+ *                  is the huff tree for compressing process
+ *
+ *                  HuffTree<_keyType,_treeType = decode_hufftree>
+ *                  is the huff tree for decompressing process
+ *  ==============================================================================
+ */
+
 /* 
  * Here use one class for both internal node and leaf.
  * This is easier to implement but will cost more space.
@@ -6,8 +28,8 @@
  * refering to "A practical introduction to data structure
  * and algorithm analisis p 115"
  * */
-#ifndef _HUFF_TREE_H_
-#define _HUFF_TREE_H_  //TODO  automate this for .h file
+#ifndef HUFF_TREE_H_
+#define HUFF_TREE_H_  //TODO  automate this for .h file
 
 #include "type_traits.h"
 #include "buffer.h"
@@ -208,18 +230,6 @@ private:
 
   //TODO try to use char[256] to speed up!
    void do_gen_encode(Node* root, std::string& encode);
-  //void do_gen_encode(Node* root, std::string encode) {
-  //  //if (root->is_leaf()) {
-  //  //if (root->left() == NULL || root->right() == NULL) {
-  //  //  //encode_map_[root->key()] = encode;
-  //  //  return;
-  //  //}
-  //  if (!root->right() && !root->left())
-  //    return;
-  //  do_gen_encode(root->left(), encode + "0");
-  //  do_gen_encode(root->right(), encode + "1");
-  //}
-
 
   //serialize like (1, 1), (1, 1), (0, 'a')....
   void do_serialize_tree(Node* root, Buffer& writer);
@@ -277,4 +287,4 @@ private:
 #ifndef HUFF_TREE_CC_
 #include "huff_tree.cc"
 #endif
-#endif  //------------end of _HUFF_TREE_H_
+#endif  //------------end of HUFF_TREE_H_

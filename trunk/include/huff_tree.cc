@@ -192,7 +192,6 @@ print(Node* node, object &tree_graph,
       key = "nl";
     else if (node->key() == ' ')
       key = "space";
-    std::cout << key << std::endl;
     str weight = str(node->weight());
 
     tree_graph.attr("add_node")(*make_tuple(c), 
