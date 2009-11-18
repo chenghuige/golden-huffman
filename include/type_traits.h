@@ -37,8 +37,6 @@ struct normal_tag {};
 struct char_tag: public normal_tag {};    //for character based encoding
 struct string_tag: public normal_tag {};  //for word based encoding
 
-struct encode_hufftree {};
-struct decode_hufftree {};
 //----------------------------------------------------------------------------
 
 //---TypeTraits,from here we can find the HashMap type 

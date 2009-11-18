@@ -9,12 +9,6 @@
 namespace glzip {
 
 template<typename _KeyType>
-void Encoder<_KeyType>::write_encode_info()
-{
-
-}
-
-template<typename _KeyType>
 void Encoder<_KeyType>::do_encode_file(char_tag)
 {
   long pos = ftell(outfile_);      //The pos right after the head info of compressing

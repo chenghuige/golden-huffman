@@ -9,13 +9,11 @@
  *  
  *   Description:   Class HuffTree and HuffNode
  *                  
- *                  To really create a huff tree as a binary tree for helping 
- *                  NormalHuffEncoder and NormaHuffDecoder
- *
- *                  HuffTree<_keyType,_treeType = encode_hufftree>
+ *               
+ *                  EncodeHuffTree
  *                  is the huff tree for compressing process
  *
- *                  HuffTree<_keyType,_treeType = decode_hufftree>
+ *                  DecodeHuffTree
  *                  is the huff tree for decompressing process
  *  ==============================================================================
  */
@@ -116,7 +114,7 @@ struct HuffNode {
  * TODO For string type the tree might be so big, the rec is OK?
  * */
 template <typename _KeyType>
-class HuffTreeBase {
+class HuffTree {
 public:
   typedef HuffNode<_KeyType>       Node;
 public:
@@ -171,12 +169,12 @@ protected:
 };
 
 //---------------------------------------------------------------------------HuffTree for encode---
-template <typename _KeyType, typename _TreeType = encode_hufftree>
-class HuffTree: public HuffTreeBase<_KeyType> {
+template <typename _KeyType>
+class EncodeHuffTree: public HuffTree<_KeyType> {
 public:
-  using HuffTreeBase<_KeyType>::root;
-  using HuffTreeBase<_KeyType>::set_root;
-  using HuffTreeBase<_KeyType>::delete_tree;
+  using HuffTree<_KeyType>::root;
+  using HuffTree<_KeyType>::set_root;
+  using HuffTree<_KeyType>::delete_tree;
 
   typedef typename TypeTraits<_KeyType>::type_catergory             type_catergory;
   typedef typename TypeTraits<_KeyType>::FrequencyHashMap           FrequencyHashMap;
@@ -196,12 +194,13 @@ public:
   typedef std::priority_queue<Node*, HuffDQU, HuffNodePtrGreater>     HuffPRQUE; //desending order use less<HuffNode> if asending
 
 public:
-  HuffTree(EncodeHashMap& encode_map, FrequencyHashMap& frequency_map)  //long long int (&)[256] can not be inited by const long ...
-        : encode_map_(encode_map), frequency_map_(frequency_map) 
+  //long long int (&)[256] can not be inited by const long ...
+  EncodeHuffTree(EncodeHashMap& encode_map, FrequencyHashMap& frequency_map)          
+    : encode_map_(encode_map), frequency_map_(frequency_map) 
   {  
     build_tree();        //assmue frequency_map is ready when creating the tree        
   }  
-  ~HuffTree() {
+  ~EncodeHuffTree() {
     //std::cout << "dstruct hufftree\n";
     delete_tree(root());
   }
@@ -244,23 +243,21 @@ private:
 };
 
 //---------------------------------------------------------------------------HuffTree for decode---
-/** Specitialized HuffTree for decoding*/
 template <typename _KeyType>
-class HuffTree<_KeyType, decode_hufftree>
-    : public HuffTreeBase<_KeyType>{
+class DecodeHuffTree: public HuffTree<_KeyType>{
 public:
-  using HuffTreeBase<_KeyType>::root;
-  using HuffTreeBase<_KeyType>::root_;
-  using HuffTreeBase<_KeyType>::set_root;
-  using HuffTreeBase<_KeyType>::delete_tree;
+  using HuffTree<_KeyType>::root;
+  using HuffTree<_KeyType>::root_;
+  using HuffTree<_KeyType>::set_root;
+  using HuffTree<_KeyType>::delete_tree;
   typedef HuffNode<_KeyType>  Node;
 
 public:
-  HuffTree(FILE* infile, FILE* outfile)
+  DecodeHuffTree(FILE* infile, FILE* outfile)
       :infile_(infile), outfile_(outfile),
        reader_(infile) {} 
 
-  ~HuffTree() {
+  ~DecodeHuffTree() {
     delete_tree(root());
   }
 

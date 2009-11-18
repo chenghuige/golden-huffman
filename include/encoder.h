@@ -79,6 +79,7 @@ public:
   void print_encode(std::ostream& out = std::cout) {
     do_print_encode(type_catergory(), out);
   }
+
 private:
   void do_print_encode(char_tag, std::ostream& out);
   
@@ -138,8 +139,8 @@ public:
     fclose(outfile_);
   }
   
-  virtual void get_encode_info() {}
-  virtual void decode_file() {}
+  virtual void get_encode_info() = 0; 
+  virtual void decode_file() = 0;
 protected:
   FILE*   infile_;
   FILE*   outfile_;

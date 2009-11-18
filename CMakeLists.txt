@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 
 project (glzip)
 
-set (CMAKE_CXX_FLAGS -O2)
+set (CMAKE_CXX_FLAGS -O3)
 set(CMAKE_BUILD_TYPE Debug)
 #set(CMAKE_CXX_FLAGS -fpermissive)
 set (CMAKE_EXE_LINKER_FLAGS  -lgtest) #for google test
@@ -25,16 +25,38 @@ set (CMAKE_EXE_LINKER_FLAGS  -lgtest) #for google test
 #make
 #这样做就完全不考虑区分debug和release的情况了
 
-OPTION(DEFINE_DEBUG
-  "Build the project using debugging code"
+#OPTION(DEFINE_DEBUG
+#  "Build the project using debugging code"
+#  OFF)
+#IF(DEFINE_DEBUG)
+#  MESSAGE("Adding Debug flag...")
+#  ADD_DEFINITIONS(-DDEBUG)
+#  SET(CMAKE_BUILD_TYPE Debug)
+#  MESSAGE("Build type is " ${CMAKE_BUILD_TYPE})
+#  MESSAGE("CMAKE_CXX_FLAGS IS " ${CMAKE_CXX_FLAGS})
+#ENDIF(DEFINE_DEBUG)
+OPTION(DEBUG
+  "Build the project using debugging mode"
   OFF)
-IF(DEFINE_DEBUG)
+IF(DEBUG)
   MESSAGE("Adding Debug flag...")
   ADD_DEFINITIONS(-DDEBUG)
   SET(CMAKE_BUILD_TYPE Debug)
   MESSAGE("Build type is " ${CMAKE_BUILD_TYPE})
   MESSAGE("CMAKE_CXX_FLAGS IS " ${CMAKE_CXX_FLAGS})
-ENDIF(DEFINE_DEBUG)
+ENDIF(DEBUG)
+
+OPTION(DEBUG2
+  "Build the project using debugging mode levle 2"
+  OFF)
+IF(DEBUG2)
+  MESSAGE("Adding Debug flag...")
+  ADD_DEFINITIONS(-DDEBUG2)
+  SET(CMAKE_BUILD_TYPE Debug)
+  MESSAGE("Build type is " ${CMAKE_BUILD_TYPE})
+  MESSAGE("CMAKE_CXX_FLAGS IS " ${CMAKE_CXX_FLAGS})
+ENDIF(DEBUG2)
+
 
 OPTION(DEFILE_PROFILE
   "Profiling the project using -pg, gprof, gprof2odt"

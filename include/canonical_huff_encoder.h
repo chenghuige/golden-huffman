@@ -25,7 +25,7 @@ namespace glzip {
  * 
  */
 template<typename _KeyType>
-class CanonicalEncoder : public Encoder<_KeyType> {
+class CanonicalHuffEncoder : public Encoder<_KeyType> {
 public:
   typedef typename TypeTraits<_KeyType>::FrequencyHashMap        FrequencyHashMap;
   typedef typename TypeTraits<_KeyType>::EncodeHashMap           EncodeHashMap;
@@ -44,7 +44,7 @@ public:
 
 
 template<typename _KeyType>
-class CanonicalDecoder : public Decoder<_KeyType> {
+class CanonicalHuffDecoder : public Decoder<_KeyType> {
 public:
 
 };

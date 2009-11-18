@@ -33,7 +33,9 @@
 
 #ifndef COMPRESSOR_H_
 #define COMPRESSOR_H_
+
 #include <string>
+
 namespace glzip{
 
 //forward declaration of NormalHuffEncoder
@@ -53,11 +55,13 @@ public:
       : encoder_(infile_name, outfile_name) {}
   /**The overall process of compressing,compressing framework,template pattern*/
   void compress() {
-    encoder_.caculate_frequency();
-    encoder_.gen_encode();
+    encoder_.caculate_frequency();   //read file and calc           --done by Encoder
+    encoder_.gen_encode();           //gen encode based on frequnce --done by specific encoder
+    
     //-------------------------------write the compressed file
-    encoder_.write_encode_info();
-    encoder_.encode_file();
+    
+    encoder_.write_encode_info();    //write outfile header(encoding info) ---done by specific encoder
+    encoder_.encode_file();          //read infile,translate to outfile,   ---done by Encoder
   }
 private:
   _Encoder<_KeyType> encoder_;  //using enocder_ right now can be HuffEncoder or CanonicalEncoder 

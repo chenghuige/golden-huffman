@@ -1,132 +1,13 @@
 #define HUFF_TREE_CC_
 #include "huff_tree.h"
 
+#ifdef DEBUG
+#include <gtest/gtest.h>
+#endif 
+
 namespace glzip{
 
-template <typename _KeyType>
-void HuffTree<_KeyType, decode_hufftree>::decode_file()
-{
-  Buffer writer(outfile_);
-  unsigned char left_bit, last_byte;
-  reader_.read_byte(left_bit);
-  reader_.read_byte(last_byte);
-  //--------------------------------------decode each byte
-  Node* cur_node = root();
-  unsigned char c;
-  while(reader_.read_byte(c)) 
-    decode_byte(c, writer, cur_node);
-  //--------------------------------------deal with the last byte
-  if (left_bit)
-    decode_byte(last_byte, writer, cur_node, (8 - left_bit));
-  writer.flush_buf();
-  fflush(outfile_);
-}
-
-
-template <typename _KeyType>
-void HuffTree<_KeyType, decode_hufftree>::
-decode_byte(unsigned char c, Buffer& writer, Node*& cur_node, int bit_num)
-{
-  unsigned char mask = 128; //1 << 7
-  for (int i = 0; i < bit_num; i++) {
-    if ((c & mask) == 0)  //--------------bit i of c is 0,turn left
-      cur_node = cur_node->left_;
-    else
-      cur_node = cur_node->right_;
-    mask >>= 1;
-    if (cur_node->is_leaf()) {
-      writer.write_byte(cur_node->key_);
-      cur_node = root();
-    }
-  }
-}
-
-template <typename _KeyType, typename _TreeType>
-void HuffTree<_KeyType, _TreeType>::build_tree()
-{
-  init_queue(type_catergory());
-  int times = pqueue_.size() - 1;
-  for (int i = 0; i < times; i++) {
-    Node* lchild = pqueue_.top();
-    pqueue_.pop();
-    Node* rchild = pqueue_.top();
-    pqueue_.pop();
-    Node* p_internal = new Node(lchild, rchild);
-    pqueue_.push(p_internal);
-  }
-  set_root(pqueue_.top());  
-  //std::cout << "Finished building tree\n"; 
-}
-
-
-//TODO try to use char[256] to speed up!
-template <typename _KeyType, typename _TreeType>
-void HuffTree<_KeyType, _TreeType>::
-do_gen_encode(Node* root, std::string& encode)
-{
- if (root->is_leaf()) {
-   encode_map_[root->key()] = encode;
-   return;
- }
- encode.append("0");              //TODO how string operation is implemented what is the effecience??
- do_gen_encode(root->left(), encode);
- encode[encode.size() - 1] = '1';
- do_gen_encode(root->right(), encode);
- encode.erase(encode.size() - 1, 1);
-}
-
-
-//serialize like (1, 1), (1, 1), (0, 'a')....
-template <typename _KeyType, typename _TreeType>
-void HuffTree<_KeyType, _TreeType>::
-do_serialize_tree(Node* root, Buffer& writer)
-{
-  if (root->is_leaf()) {
-    writer.write_byte(0);  //0 means the leaf
-    writer.write_byte(root->key());  //write the key
-    return;
-  }
-  writer.write_byte(255);  //255 means the internal node
-  writer.write_byte(255);  //any num is ok
-  do_serialize_tree(root->left(), writer);
-  do_serialize_tree(root->right(), writer);
-}
-
-
-//help debug to see if the tree rebuild from file is the same as the intial one
-template <typename _KeyType>
-void HuffTree<_KeyType, decode_hufftree>::
-do_gen_encode(Node* root, std::string& encode)
-{
-  if (root->is_leaf()) {
-    std::cout << root->key() << " " << encode << "\n";
-    return;
-  }
-  encode.append("0");              //TODO how string operation is implemented what is the effecience??
-  do_gen_encode(root->left(), encode);
-  encode[encode.size() - 1] = '1';
-  do_gen_encode(root->right(), encode);
-  encode.erase(encode.size() - 1, 1);
-}
-
-
-template <typename _KeyType>
-void HuffTree<_KeyType, decode_hufftree>::
-do_build_tree(Node*& root)
-{
-  unsigned char first, second;
-  reader_.read_byte(first);
-  reader_.read_byte(second);
-  if (first == 0) {  //is leaf  TODO actually we do not need weight this time so HuffNode can be smaller
-    root = new Node(second);
-    return;
-  }
-  root = new Node();
-  do_build_tree(root->left_);
-  do_build_tree(root->right_);
-}
-
-
+//--------------------------------------------------------------HuffTree
 /**
 * Print the huff tree,the subtree from root
 * using pygrahviz
@@ -134,7 +15,7 @@ do_build_tree(Node*& root)
 * The result is written to the result_file
 */
 template <typename _KeyType>
-void HuffTreeBase<_KeyType>::print(std::string result_file)
+void HuffTree<_KeyType>::print(std::string result_file)
 {
   if(!root())
     return;
@@ -173,7 +54,7 @@ void HuffTreeBase<_KeyType>::print(std::string result_file)
 //hufftree which do not need to use invisiable node for one left or right null child!
 //For a normal sence binary tree may need to write another one.
 template <typename _KeyType>
-long long HuffTreeBase<_KeyType>::
+long long HuffTree<_KeyType>::
 print(Node* node, object &tree_graph, 
     long long &key_num, long long &invs_num)
 {
@@ -249,6 +130,139 @@ print(Node* node, object &tree_graph,
 
   return local_key_num; 
 }
+
+//----------------------------------------------------------EncodeHuffTree
+template <typename _KeyType>
+void EncodeHuffTree<_KeyType>::build_tree()
+{
+  init_queue(type_catergory());
+  int times = pqueue_.size() - 1;
+  for (int i = 0; i < times; i++) {
+    Node* lchild = pqueue_.top();
+    pqueue_.pop();
+    Node* rchild = pqueue_.top();
+    pqueue_.pop();
+    Node* p_internal = new Node(lchild, rchild);
+    pqueue_.push(p_internal);
+  }
+  set_root(pqueue_.top());  
+  //std::cout << "Finished building tree\n"; 
+}
+
+
+//TODO try to use char[256] to speed up!
+template <typename _KeyType>
+void EncodeHuffTree<_KeyType>::
+do_gen_encode(Node* root, std::string& encode)
+{
+ if (root->is_leaf()) {
+   encode_map_[root->key()] = encode;
+   return;
+ }
+ encode.append("0");              //TODO how string operation is implemented what is the effecience??
+ do_gen_encode(root->left(), encode);
+ encode[encode.size() - 1] = '1';
+ do_gen_encode(root->right(), encode);
+ encode.erase(encode.size() - 1, 1);
+}
+
+
+//serialize like (1, 1), (1, 1), (0, 'a')....
+template <typename _KeyType>
+void EncodeHuffTree<_KeyType>::
+do_serialize_tree(Node* root, Buffer& writer)
+{
+  if (root->is_leaf()) {
+    writer.write_byte(0);  //0 means the leaf
+    writer.write_byte(root->key());  //write the key
+    return;
+  }
+  writer.write_byte(255);  //255 means the internal node
+  writer.write_byte(255);  //any num is ok
+  do_serialize_tree(root->left(), writer);
+  do_serialize_tree(root->right(), writer);
+}
+
+//---------------------------------------------------DecodeHuffTree
+template <typename _KeyType>
+void DecodeHuffTree<_KeyType>::decode_file()
+{
+  int a[30];
+  for (int i = 0 ; i < 30 ; i++) {
+    a[i] = 3;
+  }
+    
+  Buffer writer(outfile_);
+  unsigned char left_bit, last_byte;
+  reader_.read_byte(left_bit);
+  reader_.read_byte(last_byte);
+  //--------------------------------------decode each byte
+  Node* cur_node = root();
+  unsigned char c;
+  while(reader_.read_byte(c)) 
+    decode_byte(c, writer, cur_node);
+  //--------------------------------------deal with the last byte
+  if (left_bit)
+    decode_byte(last_byte, writer, cur_node, (8 - left_bit));
+  writer.flush_buf();
+  fflush(outfile_);
+}
+
+
+template <typename _KeyType>
+void DecodeHuffTree<_KeyType>::
+decode_byte(unsigned char c, Buffer& writer, Node*& cur_node, int bit_num)
+{
+  unsigned char mask = 128; //1 << 7
+  for (int i = 0; i < bit_num; i++) {
+    if ((c & mask) == 0)  //--------------bit i of c is 0,turn left
+      cur_node = cur_node->left_;
+    else
+      cur_node = cur_node->right_;
+    mask >>= 1;
+    if (cur_node->is_leaf()) {
+      writer.write_byte(cur_node->key_);
+      cur_node = root();
+    }
+  }
+}
+
+
+
+
+//help debug to see if the tree rebuild from file is the same as the intial one
+template <typename _KeyType>
+void DecodeHuffTree<_KeyType>::
+do_gen_encode(Node* root, std::string& encode)
+{
+  if (root->is_leaf()) {
+    std::cout << root->key() << " " << encode << "\n";
+    return;
+  }
+  encode.append("0");              //TODO how string operation is implemented what is the effecience??
+  do_gen_encode(root->left(), encode);
+  encode[encode.size() - 1] = '1';
+  do_gen_encode(root->right(), encode);
+  encode.erase(encode.size() - 1, 1);
+}
+
+
+template <typename _KeyType>
+void DecodeHuffTree<_KeyType>::
+do_build_tree(Node*& root)
+{
+  unsigned char first, second;
+  reader_.read_byte(first);
+  reader_.read_byte(second);
+  if (first == 0) {  //is leaf  TODO actually we do not need weight this time so HuffNode can be smaller
+    root = new Node(second);
+    return;
+  }
+  root = new Node();
+  do_build_tree(root->left_);
+  do_build_tree(root->right_);
+}
+
 
 }   //end of space glzip
 
