@@ -19,6 +19,7 @@
 #include <iostream>
 
 #include "buffer.h"
+#include "normal_huff_encoder.h"
 #include "compressor.h"
 
 #include <gtest/gtest.h> //using gtest make sure it is first installed on your system
@@ -84,12 +85,9 @@ int main(int argc, char *argv[])
   if (argc == 2) {  //user input infile name
     infile_name = argv[1];
   }
-  Compressor<> compressor(infile_name, outfile_name);
- compressor.compress();
-  return 0;
-  //testing::GTEST_FLAG(output) = "xml:";
-  //testing::InitGoogleTest(&argc, argv);
-  //return RUN_ALL_TESTS();
+  testing::GTEST_FLAG(output) = "xml:";
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
 
 
