@@ -105,7 +105,7 @@ void Encoder<_KeyType>::do_print_encode(char_tag, std::ostream& out)
       }
     }
   }
-
+  //out.close() //not close for std::ostream struct std::basic_ostream<char, std::char_traits<char> >
 }
 
 

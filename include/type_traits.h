@@ -51,8 +51,7 @@ template<>
 class TypeTraits<unsigned char> {
 public:
   typedef char_tag type_catergory;
-  typedef long long count[256];
-  typedef count     FrequencyHashMap;
+  typedef long long FrequencyHashMap[256];
   typedef std::vector<std::string>    EncodeHashMap;
 };
 //---special TypeTraits for std::string, word based encoding

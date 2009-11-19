@@ -37,11 +37,13 @@
 #include <vector>
 #include <functional>
 #include <iostream>
+
+#ifdef DEBUG2
 #include <boost/python.hpp> //for using boost.python to print the hufftree
 #include <boost/lexical_cast.hpp> //type conversion
 
-
-using namespace boost::python;   //for tree printing
+namespace boostpy = boost::python; //for tree printing
+#endif
 
 namespace glzip{
 //----------------------------------------------------------------------------HuffNode------
@@ -143,6 +145,7 @@ public:
     }
   }
 
+#ifdef DEBUG2
   /**
    * Print the huff tree,the subtree from root
    * using pygrahviz
@@ -161,8 +164,9 @@ private:
   //Note it is a binary tree pringing function specialized for
   //hufftree which do not need to use invisiable node for one left or right null child!
   //For a normal sence binary tree may need to write another one.
-  long long print(Node* node, object &tree_graph, 
+  long long print(Node* node, boostpy::object &tree_graph, 
     long long &key_num, long long &invs_num);
+#endif
 
 protected:
   Node*   root_;
@@ -228,7 +232,7 @@ private:
   }
 
   //TODO try to use char[256] to speed up!
-   void do_gen_encode(Node* root, std::string& encode);
+  void do_gen_encode(Node* root, std::string& encode);
 
   //serialize like (1, 1), (1, 1), (0, 'a')....
   void do_serialize_tree(Node* root, Buffer& writer);
