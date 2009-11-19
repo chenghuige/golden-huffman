@@ -52,47 +52,44 @@ class CanonicalHuffEncoder : public Encoder<_KeyType> {
 //but since 256 is small it's ok if big num than we shoud free the mem
 template<>
 class CanonicalHuffEncoder<unsigned char> : public Encoder<unsigned char> {
-public:
+private:
+  //---------------------prepare for the priority queue
   typedef unsigned char KeyType;
   typedef TypeTraits<KeyType>::FrequencyHashMap        FrequencyHashMap;
-  //typedef TypeTraits<KeyType>::EncodeHashMap           EncodeHashMap;
-  //typedef TypeTraits<KeyType>::type_catergory          type_catergory;
- 
-  //TODO below not a type ......  TODO why wrong?
-  //struct HuffNodeIndexGreater:
-  //    public std::binary_function<int, int, bool> {
-  //  explicit HuffNodeIndexGreater(FrequencyHashMap& frequency_map)
-  //    :f_map_(frequency_map) {}
-  //  bool operator() (const int index1, const int index2) {
-  //    return f_map_[index1] > f_map_[index2];
-  //  }
-  //private:
-  //FrequencyHashMap& f_map_;  
-  //};
-  ////The problem is you can use HuffNodeIndexGreater for fucntion like for each
-  ////but can not be used in priority_queue for conainer!!!They can not hold your
-  ////local info!
-  //typedef std::deque<int> HuffDQU;   
-  //
-  //using Encoder<unsigned char>::frequency_map_;
-  ////typedef std::priority_queue<int, HuffDQU,  HuffNodeIndexGreater(frequency_map_)>    
-  ////  HuffPRQUE; 
-  //long long int a[256];
-  //HuffNodeIndexGreater foo;
-  //typedef std::priority_queue<int, HuffDQU,  HuffNodeIndexGreater(foo)>    
-  //  HuffPRQUE; 
 
-
-
+  struct HuffNodeIndexGreater:
+      public std::binary_function<int, int, bool> {
+    explicit HuffNodeIndexGreater(FrequencyHashMap& frequency_map)
+      :f_map_(frequency_map) {}
+    bool operator() (const int index1, const int index2) {
+      return f_map_[index1] > f_map_[index2];
+    }
+  private:
+  FrequencyHashMap& f_map_;  
+  };
+  
+  typedef std::deque<int> HuffDQU;   
+  typedef std::priority_queue<int, HuffDQU, HuffNodeIndexGreater>  HuffPRQUE; 
 
 
 public:  
   CanonicalHuffEncoder(const std::string& infile_name, std::string& outfile_name) 
       : Encoder<unsigned char>(infile_name, outfile_name) {
+    set_out_file(infile_name, outfile_name);
+  }
+
+  CanonicalHuffEncoder() {}
+
+  void set_out_file(const std::string& infile_name, std::string& outfile_name) {
     std::string postfix = ".crs2";                                 
     if (outfile_name.empty())
       outfile_name = infile_name + postfix;
     this->outfile_ = fopen(outfile_name.c_str(), "wb");
+  }
+
+  void set_file(const std::string& infile_name, std::string& outfile_name) {
+    Encoder<unsigned char>::set_file(infile_name, outfile_name);
+    set_out_file(infile_name, outfile_name);
   }
 
   void gen_encode() {
@@ -106,16 +103,24 @@ public:
 private:
   void get_encoding_length() {
     int group[256];  
-    HuffPRQUE queue;
+    HuffNodeIndexGreater index_cmp(this->frequency_map_);
+    HuffPRQUE queue(index_cmp);
+#ifdef DEBUG
+    FrequencyHashMap freq_map_copy;
+    std::copy(this->frequency_map_, 
+              this->frequency_map_ + 256, freq_map_copy);
+#endif 
     //------init queue
     for (int i = 0 ; i < 256 ; i++) { 
-      queue.push(i);
+      if (this->frequency_map_[i])
+        queue.push(i);
       group[i] = -1;
       length_[i] = 0;
     }
     //------imitate creating huff tree using array
     int top_index1,top_index2, index;
-    for (int i = 0 ; i < 255 ; i++) {
+    int times = queue.size() - 1;
+    for (int i = 0 ; i < times ; i++) {
       top_index1 = queue.top();
       queue.pop();
       top_index2 = queue.top();
@@ -130,7 +135,7 @@ private:
       //link group of top_index1 to the group top_index2
       group[index] = top_index1;
       //the node group of top_index2 all add 1
-      while(group[index] != -1) {
+      while(index != -1) {
         length_[index] += 1;
         index = group[index];
       }      
@@ -139,9 +144,11 @@ private:
       this->frequency_map_[top_index2] += this->frequency_map_[top_index1];
 
       queue.push(top_index2);
-
     }
-    
+#ifdef DEBUG
+    std::copy(freq_map_copy, 
+              freq_map_copy + 256, this->frequency_map_);
+#endif 
   }
 
 private: 

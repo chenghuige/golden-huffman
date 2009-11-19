@@ -51,6 +51,8 @@ namespace glzip {
 /* *
  * Class NormalHuffEnocder  --Encoder using the normal huffman method
  */
+//TODO may be can use composite instead of deriving
+//NormalHuffEncoder using Encoder.
 template<typename _KeyType>
 class NormalHuffEncoder : public Encoder<_KeyType> {
 public:
@@ -60,8 +62,16 @@ public:
   typedef EncodeHuffTree<_KeyType>   Tree;
 public:
   //----the specific encoder like HuffEncoder or CanonicalEncoder will decide the outfile name and open it
+  //TODO right now infile_name not const!
   NormalHuffEncoder(const std::string& infile_name, std::string& outfile_name) 
       : Encoder<_KeyType>(infile_name, outfile_name) {
+    set_out_file(infile_name, outfile_name);
+  }
+
+  NormalHuffEncoder(): phuff_tree_(NULL) {}
+
+  //TODO need to be virtual? Now is Ok?
+  void set_out_file(const std::string& infile_name, std::string& outfile_name) {
     std::string postfix = ".crs";                                 
     if (typeid(type_catergory) == typeid(string_tag))
       postfix += "w";
@@ -69,8 +79,14 @@ public:
       outfile_name = infile_name + postfix;
     this->outfile_ = fopen(outfile_name.c_str(), "wb");
   }
+  void set_file(const std::string& infile_name, std::string& outfile_name) {
+    Encoder<_KeyType>::set_file(infile_name, outfile_name);
+    set_out_file(infile_name, outfile_name);
+  }
+
   ~NormalHuffEncoder() {
-    delete phuff_tree_;
+    if (phuff_tree_)
+      delete phuff_tree_;
   }
 
   ///得到所有符号/单词的编码 
@@ -79,7 +95,7 @@ public:
     phuff_tree_ = new Tree(this->encode_map_, this->frequency_map_);   
     phuff_tree_->gen_encode(); 
     
-    #ifdef DEBUG2  //DEBUG2 means dumping log while DEBUG means using gtest checking 
+    #ifdef DEBUG   
       print_log();
     #endif
   }
@@ -93,10 +109,12 @@ public:
     std::cout << "Writting the encode info to the file " << out_file_name << std::endl;
     this->print_encode(out_file); 
     out_file.close();
+    #ifdef DEBUG2               //only draw graph when DEBUG2 is setting
     if (tree_file_name == "")
       phuff_tree_->print();
     else
       phuff_tree_->print(tree_file_name);
+    #endif 
   }
  
   ///写入压缩文件头部的huff_tree信息,以便解压缩的时候恢复

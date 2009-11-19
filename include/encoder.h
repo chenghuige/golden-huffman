@@ -53,15 +53,39 @@ public:
   typedef typename TypeTraits<_KeyType>::type_catergory          type_catergory;
 public:
   Encoder(const std::string& infile_name, std::string& outfile_name) 
-    : infile_name_(infile_name){
-    infile_ = fopen(infile_name.c_str(), "rb");
+    : infile_name_(infile_name), infile_(fopen(infile_name.c_str(), "rb")){
+    //infile_ = fopen(infile_name.c_str(), "rb");
     do_init(type_catergory());
+  }
+
+  Encoder(): infile_(NULL), outfile_(NULL){
+    do_init(type_catergory());
+  }
+ 
+  //if not given file name at first be sure to set_file before compressing
+  virtual void set_file(const std::string& infile_name, std::string& outfile_name) {
+    if (infile_) 
+      fclose(infile_);
+    if (outfile_)
+      fclose(outfile_);
+    
+    infile_name_ = infile_name;
+    infile_ = fopen(infile_name.c_str(), "rb");
+  }
+  
+  void clear() {
+    if (infile_) 
+      fclose(infile_);
+    if (outfile_)
+      fclose(outfile_);
+    infile_ = NULL;
+    outfile_ = NULL;
   }
   virtual ~Encoder() {
     //std::cout << "destuct encoder\n";
-    fclose(infile_);
-    fclose(outfile_);
+    clear();
   }
+
   void caculate_frequency() {
     do_caculate_frequency(type_catergory());
   }
@@ -127,7 +151,7 @@ protected:
   EncodeHashMap         encode_map_;
   FrequencyHashMap      frequency_map_;
 
-  const std::string&    infile_name_;        //for debug gen_enocde print log 
+  std::string     infile_name_;        //for debug gen_enocde print log 
 
 };
 

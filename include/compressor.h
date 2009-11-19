@@ -54,6 +54,18 @@ class Compressor {
 public:
   Compressor(const std::string& infile_name, std::string& outfile_name) 
       : encoder_(infile_name, outfile_name) {}
+  
+  Compressor() {}
+  
+  //TODO add set_file for decompressor
+  void set_file(std::string& infile_name, std::string& outfile_name) {
+    encoder_.set_file(infile_name, outfile_name);
+  }
+
+  void clear() {
+    encoder_.clear();
+  }
+
   /**The overall process of compressing,compressing framework,template pattern*/
   void compress() {
     encoder_.caculate_frequency();   //read file and calc           --done by Encoder
