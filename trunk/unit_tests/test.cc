@@ -17,38 +17,35 @@
  */
 #include <stdio.h>
 #include <iostream>
-
 #include "buffer.h"
+
+#ifdef DEBUG
+#define protected public  //for debug
+#define private   public
+#endif
+
+#include "compressor.h"  
 #include "normal_huff_encoder.h"
-#include "compressor.h"
+#include "canonical_huff_encoder.h"
+
 
 #include <gtest/gtest.h> //using gtest make sure it is first installed on your system
-
 using namespace std;
-using namespace glzip;
+using namespace glzip; //Notice it is must be after ,using namesapce is dangerous so be carefull
+
+//TODO using class for google test
 
 string infile_name("big.log");
 string outfile_name;
 string infile_name2, outfile_name2;
+/* 
+ * compressor  and decompressor  is normal huffman char based method
+ * compressor2 and decompressor2 is canonical huffman char based method
+ * */
+Compressor<> compressor;
+Compressor<CanonicalHuffEncoder> compressor2;
 
-//------------------------------*Step1 is to compress a file,perf test!
-TEST(huff_char_compress, perf)
-{
-  Compressor<> compressor(infile_name, outfile_name);
-  compressor.compress();
-}
-
-//------------------------------*Step2 is to decompress the file compressed in step1,perf test!
-TEST(huff_char_decompress, perf)
-{
-  infile_name2 = outfile_name;
-  Decompressor<> decompressor(infile_name2, outfile_name2);
-  decompressor.decompress();
-}
-
-//------------------------------*Step3 is to see if the final file(after compress and decompress)
-//-----------------------------------is the same as the original one.Functional test! 
-TEST(huff_char, func)
+void compressor_func_test() 
 {
   int num1, num2;
   num1 = num2 = 0;
@@ -78,14 +75,93 @@ TEST(huff_char, func)
                         << "final " << num2;     
   fclose(p_orignal);
   fclose(p_final);
+
 }
+
+
+//-------------------------------------Testing normal huffman char 
+//------------------------------*Step1 is to compress a file,perf test!
+TEST(normal_huff_char, compress_perf)
+{
+    compressor.compress();
+}
+
+//------------------------------*Step2 is to decompress the file compressed in step1,perf test!
+TEST(normal_huff_char, decomress_perf)
+{
+  infile_name2 = outfile_name;
+  Decompressor<> decompressor(infile_name2, outfile_name2);
+  decompressor.decompress();
+}
+
+//------------------------------*Step3 is to see if the final file(after compress and decompress)
+//-----------------------------------is the same as the original one.Functional test! 
+TEST(normal_huff_char, func)
+{
+  compressor_func_test();
+}
+
+//-------------------------------------Testing canonical huffman char 
+//------------------------------*Step1 is to compress a file,perf test!
+TEST(canonical_huff_char, compress_perf)
+{
+  compressor2.compress();
+}
+
+#ifdef DEBUG
+TEST(canonical_huff_char, encoding_length_func)
+{
+  //TODO auto? here can?
+  //std::string *normal_length 
+  //  = compressor.encoder_.encode_map_;  //string array
+  long long sum1 = 0, sum2 = 0;
+  long long num1 = 0, num2 = 0;
+  for (int i = 0 ; i < 256 ; i++) {
+    unsigned char key = i;
+    int normal_len = compressor.encoder_.encode_map_[i].length();
+    int canoni_len = compressor2.encoder_.length_[i];
+    long long normal_frq = compressor.encoder_.frequency_map_[i];
+    long long canoni_frq = compressor2.encoder_.frequency_map_[i];
+    EXPECT_EQ(normal_len, canoni_len) << i << key;
+    EXPECT_EQ(normal_frq, canoni_frq) << i << key;
+    num1 += normal_frq;
+    num2 += canoni_frq;
+    sum1 += normal_frq * normal_len;
+    sum2 += canoni_frq * canoni_len;
+  }
+  float normal_avg = float(sum1)/num1;
+  float canoni_avg = float(sum2)/num2;
+  EXPECT_FLOAT_EQ(normal_avg, canoni_avg);
+}
+#endif
+
+////------------------------------*Step2 is to decompress the file compressed in step1,perf test!
+//TEST(canonical_huff_char, decomress_perf)
+//{
+//  infile_name2 = outfile_name;
+//  Decompressor<> decompressor2(infile_name2, outfile_name2);
+//  decompressor2.decompress();
+//}
+//
+////------------------------------*Step3 is to see if the final file(after compress and decompress)
+////-----------------------------------is the same as the original one.Functional test! 
+//TEST(canonicall_huff_char, func)
+//{
+//  compressor_func_test();
+//}
+
 
 int main(int argc, char *argv[])
 {
   if (argc == 2) {  //user input infile name
     infile_name = argv[1];
   }
-  testing::GTEST_FLAG(output) = "xml:";
+
+  compressor.set_file(infile_name, outfile_name);
+  //compressor.clear();
+  compressor2.set_file(infile_name, outfile_name);
+  
+  //testing::GTEST_FLAG(output) = "xml:";
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
