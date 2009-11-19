@@ -35,6 +35,7 @@
 #define COMPRESSOR_H_
 
 #include <string>
+#include <fstream>
 
 namespace glzip{
 
@@ -63,6 +64,7 @@ public:
     encoder_.write_encode_info();    //write outfile header(encoding info) ---done by specific encoder
     encoder_.encode_file();          //read infile,translate to outfile,   ---done by Encoder
   }
+ 
 private:
   _Encoder<_KeyType> encoder_;  //using enocder_ right now can be HuffEncoder or CanonicalEncoder 
 };

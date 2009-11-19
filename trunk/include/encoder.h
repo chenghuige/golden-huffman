@@ -50,7 +50,7 @@ class Encoder {
 public:
   typedef typename TypeTraits<_KeyType>::FrequencyHashMap        FrequencyHashMap;
   typedef typename TypeTraits<_KeyType>::EncodeHashMap           EncodeHashMap;
-  typedef typename TypeTraits<_KeyType>::type_catergory type_catergory;
+  typedef typename TypeTraits<_KeyType>::type_catergory          type_catergory;
 public:
   Encoder(const std::string& infile_name, std::string& outfile_name) 
     : infile_name_(infile_name){
@@ -78,6 +78,14 @@ public:
   ///打印huffman 压缩过程中 字符编码表及相关统计数据
   void print_encode(std::ostream& out = std::cout) {
     do_print_encode(type_catergory(), out);
+  }
+
+  void print_encode_length(std::ostream& out = std::cout) {
+    //write the encoding length info to a separate file for conving that the canonical huff encoder
+    //has correctly cacluate the encoding length just as the norma huff encoder
+    for (int i = 0 ; i < 256 ; i++) {
+      out << encode_map_[i].length() << std::endl;
+    }
   }
 
 private:
@@ -119,7 +127,7 @@ protected:
   EncodeHashMap         encode_map_;
   FrequencyHashMap      frequency_map_;
 
-  const std::string& infile_name_;        //for debug gen_enocde print log 
+  const std::string&    infile_name_;        //for debug gen_enocde print log 
 
 };
 

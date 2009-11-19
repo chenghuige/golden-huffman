@@ -1,13 +1,11 @@
 #define HUFF_TREE_CC_
 #include "huff_tree.h"
 
-#ifdef DEBUG
-#include <gtest/gtest.h>
-#endif 
-
 namespace glzip{
 
 //--------------------------------------------------------------HuffTree
+//
+#ifdef DEBUG2
 /**
 * Print the huff tree,the subtree from root
 * using pygrahviz
@@ -17,6 +15,7 @@ namespace glzip{
 template <typename _KeyType>
 void HuffTree<_KeyType>::print(std::string result_file)
 {
+  using namespace boostpy;
   if(!root())
     return;
 
@@ -55,10 +54,10 @@ void HuffTree<_KeyType>::print(std::string result_file)
 //For a normal sence binary tree may need to write another one.
 template <typename _KeyType>
 long long HuffTree<_KeyType>::
-print(Node* node, object &tree_graph, 
+print(Node* node, boostpy::object &tree_graph, 
     long long &key_num, long long &invs_num)
 {
-  
+  using namespace boostpy;
   str c = str(key_num);
   long long local_key_num = key_num; //save on local copy of key_num right now
 
@@ -130,7 +129,7 @@ print(Node* node, object &tree_graph,
 
   return local_key_num; 
 }
-
+#endif      //---------------end of #ifdef DEBUG2
 //----------------------------------------------------------EncodeHuffTree
 template <typename _KeyType>
 void EncodeHuffTree<_KeyType>::build_tree()

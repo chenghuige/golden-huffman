@@ -84,13 +84,19 @@ public:
     #endif
   }
 
-  void print_log() {
+  // std::string tree_file_name  should be *.dot
+  void print_log(std::string out_file_name = "",  std::string tree_file_name = "") {
     //------------------------记录压缩过程的信息,print_encode并且将建立的二叉树打印到文件中
-    std::string out_file_name = this->infile_name_ + "_huff_encode_long.txt";
+    if (out_file_name == "")
+      out_file_name = this->infile_name_ + "normal_huff_encode_long.txt";
     std::ofstream out_file(out_file_name.c_str());
     std::cout << "Writting the encode info to the file " << out_file_name << std::endl;
     this->print_encode(out_file); 
-    phuff_tree_->print();
+    out_file.close();
+    if (tree_file_name == "")
+      phuff_tree_->print();
+    else
+      phuff_tree_->print(tree_file_name);
   }
  
   ///写入压缩文件头部的huff_tree信息,以便解压缩的时候恢复
