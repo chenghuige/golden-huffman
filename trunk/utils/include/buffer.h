@@ -24,6 +24,10 @@ namespace glzip {
  * Buffer
  * Provide buffered read and write
  * wrapped fread() and fwrite(). 
+ * especially for 
+ * read_byte()  
+ * write byte()
+ * write bit()
  */
 class Buffer {
 public:
@@ -92,31 +96,10 @@ public:
   //bits_num < 32
   //TODO unsigned int?
   void write_bits(int code, int bits_num) {
-    unsigned int mask = (1 << (bits_num - 1));
-    for (int i = 0; i < bits_num; i++) {
-      write_bit((unsigned int)code & mask);
-//#ifdef DEBUG
-//      std::cout << ((unsigned int)code & mask); 
-//#endif
-      mask >>= 1;
+    std::bitset<32> bits(code);
+    for (int i = (bits_num - 1); i >= 0; i--) {
+      write_bit(bits[i]);
     }
-//#ifdef DEBUG
-//    std::cout << std::endl;
-//#endif
-
-    //std::bitset<32> bits(code);
-    //for (int i = (bits_num - 1); i >= 0; i--) {
-    //  write_bit(bits[i]);
-    //}
-
-//#ifdef DEBUG
-//    std::cout << "bitset!" << std::endl;
-//    std::bitset<32> bits(code);
-//    for (int i = (bits_num - 1); i >= 0; i--) {
-//      std::cout << bits[i];
-//    }
-//    std::cout << std::endl;
-//#endif
   }
 
 private:
