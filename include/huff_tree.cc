@@ -207,18 +207,19 @@ void DecodeHuffTree<_KeyType>::decode_file()
   fflush(outfile_);
 }
 
-
+#include <bitset>
 template <typename _KeyType>
 void DecodeHuffTree<_KeyType>::
 decode_byte(unsigned char c, Buffer& writer, Node*& cur_node, int bit_num)
 {
-  unsigned char mask = 128; //1 << 7
-  for (int i = 0; i < bit_num; i++) {
-    if ((c & mask) == 0)  //--------------bit i of c is 0,turn left
-      cur_node = cur_node->left_;
-    else
+  std::bitset<8> bits(c);
+  int end = 7 - bit_num;
+  for (int i = 7; i > end; i--) {
+    if (bits[i])
       cur_node = cur_node->right_;
-    mask >>= 1;
+    else
+      cur_node = cur_node->left_;
+  
     if (cur_node->is_leaf()) {
       writer.write_byte(cur_node->key_);
       cur_node = root();
