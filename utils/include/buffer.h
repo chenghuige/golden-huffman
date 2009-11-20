@@ -15,6 +15,9 @@
 #ifndef BUFFER_H_
 #define BUFFER_H_
 
+#include <iostream>
+#include <bitset>
+
 namespace glzip {
 
 /**
@@ -79,12 +82,41 @@ public:
   int left_bits() {
     return (8 - bit_cur_) % 8;
   }
-
  
   //s must be like "00111010"
   void write_string(const std::string& s) {
     for (unsigned int i = 0; i < s.size(); i++) 
       write_bit(s[i] - '0');
+  }
+
+  //bits_num < 32
+  //TODO unsigned int?
+  void write_bits(int code, int bits_num) {
+    unsigned int mask = (1 << (bits_num - 1));
+    for (int i = 0; i < bits_num; i++) {
+      write_bit((unsigned int)code & mask);
+//#ifdef DEBUG
+//      std::cout << ((unsigned int)code & mask); 
+//#endif
+      mask >>= 1;
+    }
+//#ifdef DEBUG
+//    std::cout << std::endl;
+//#endif
+
+    //std::bitset<32> bits(code);
+    //for (int i = (bits_num - 1); i >= 0; i--) {
+    //  write_bit(bits[i]);
+    //}
+
+//#ifdef DEBUG
+//    std::cout << "bitset!" << std::endl;
+//    std::bitset<32> bits(code);
+//    for (int i = (bits_num - 1); i >= 0; i--) {
+//      std::cout << bits[i];
+//    }
+//    std::cout << std::endl;
+//#endif
   }
 
 private:

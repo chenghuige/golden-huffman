@@ -3,6 +3,13 @@
 
 namespace glzip {
 
+//get encoding length 
+//space using is 
+//frequence map 256  long long
+//encoding map  256  string
+//length        256  int
+//group         256  int
+//queue         256  int
 void CanonicalHuffEncoder<unsigned char>::
 get_encoding_length()
 {
