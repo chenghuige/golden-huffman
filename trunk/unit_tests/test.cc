@@ -82,58 +82,66 @@ void compressor_func_test()
 
 //-------------------------------------Testing normal huffman char 
 //------------------------------*Step1 is to compress a file,perf test!
-TEST(normal_huff_char, compress_perf)
-{
-    compressor.compress();
-}
-
-TEST(normal_huff_char, compress_perf_calcFreq)
-{
-   compressor.set_file(infile_name, outfile_name);
-   //read file and calc           --done by Encoder
-   compressor.encoder_.caculate_frequency();    
-}
-
-TEST(normal_huff_char, compress_perf_genEncode)
-{
-    //gen encode based on frequnce --done by specific encoder
-    compressor.encoder_.gen_encode(); 
-}
-
-TEST(normal_huff_char, compress_perf_writeEncodeInfo)
-{
-    //write outfile header(encoding info) ---done by specific encoder
-    compressor.encoder_.write_encode_info();
-}
-
-TEST(normal_huff_char, compress_perf_encodeFile)
-{
-    //read infile,translate to outfile,   ---done by Encoder
-    compressor.encoder_.encode_file();         
-}
-
-
-
-//------------------------------*Step2 is to decompress the file compressed in step1,perf test!
-TEST(normal_huff_char, decomress_perf)
-{
-  infile_name2 = outfile_name;
-  Decompressor<> decompressor(infile_name2, outfile_name2);
-  decompressor.decompress();
-}
-
-//------------------------------*Step3 is to see if the final file(after compress and decompress)
-//-----------------------------------is the same as the original one.Functional test! 
-TEST(normal_huff_char, func)
-{
-  compressor_func_test();
-}
+//TEST(normal_huff_char, compress_perf)
+//{
+//    compressor.compress();
+//}
+//
+////TEST(normal_huff_char, compress_perf_calcFreq)
+////{
+////   compressor.set_file(infile_name, outfile_name);
+////   //read file and calc           --done by Encoder
+////   compressor.encoder_.caculate_frequency();    
+////}
+////
+////TEST(normal_huff_char, compress_perf_genEncode)
+////{
+////    //gen encode based on frequnce --done by specific encoder
+////    compressor.encoder_.gen_encode(); 
+////}
+////
+////TEST(normal_huff_char, compress_perf_writeEncodeInfo)
+////{
+////    //write outfile header(encoding info) ---done by specific encoder
+////    compressor.encoder_.write_encode_info();
+////}
+////
+////TEST(normal_huff_char, compress_perf_encodeFile)
+////{
+////    //read infile,translate to outfile,   ---done by Encoder
+////    compressor.encoder_.encode_file();         
+////}
+//
+//
+//
+////------------------------------*Step2 is to decompress the file compressed in step1,perf test!
+//TEST(normal_huff_char, decomress_perf)
+//{
+//  infile_name2 = outfile_name;
+//  Decompressor<> decompressor(infile_name2, outfile_name2);
+//  decompressor.decompress();
+//}
+//
+////------------------------------*Step3 is to see if the final file(after compress and decompress)
+////-----------------------------------is the same as the original one.Functional test! 
+//TEST(normal_huff_char, func)
+//{
+//  compressor_func_test();
+//}
 //
 //-------------------------------------Testing canonical huffman char 
 //------------------------------*Step1 is to compress a file,perf test!
 TEST(canonical_huff_char, compress_perf)
 {
   compressor2.compress();
+}
+
+//FIXME file_name problem
+TEST(canonical_huff_char, decomress_perf)
+{
+  infile_name2 = outfile_name;
+  Decompressor<CanonicalHuffDecoder> decompressor2(infile_name2, outfile_name2);
+  decompressor2.decompress();
 }
 
 //#ifdef DEBUG

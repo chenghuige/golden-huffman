@@ -157,7 +157,7 @@ protected:
   FILE*                 infile_;
   FILE*                 outfile_;
 
-  EncodeHashMap         encode_map_;     //Those two move specific encoder?TODO
+  EncodeHashMap         encode_map_;     //FIXME move specific encoder?TODO to be moved to normal huff encoder
   FrequencyHashMap      frequency_map_;
 
   std::string     infile_name_;        //for debug gen_enocde print log 
@@ -165,6 +165,12 @@ protected:
 };
 
 //---------------------------------------------------------------------Decoder
+/**
+ * Decoder will provide the outfile name and outfile open infile and outfile
+ * Derived decoder will provide 
+ * get_encode_info()
+ * decode_file()
+ */
 template<typename _KeyType>
 class Decoder {
 public:

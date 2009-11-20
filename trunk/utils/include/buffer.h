@@ -57,6 +57,13 @@ public:
     c = buf_[cur_++];
     return 1;     //successfully read one byte
   }
+//FIXME template? for the two? if we int n; read_byte(n); we can not use the one above!! must be char&
+  int read_byte(int& c) {
+    if (cur_ == buf_used_ && fill_buf() == 0) 
+      return 0;   //at the end, did not read
+    c = (int)buf_[cur_++];
+    return 1;     //successfully read one byt
+  }
 
   ///TODO using read bit will slow down the speed?
   //int read_bit(int& x) {
