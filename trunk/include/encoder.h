@@ -64,11 +64,9 @@ public:
  
   //if not given file name at first be sure to set_file before compressing
   virtual void set_file(const std::string& infile_name, std::string& outfile_name) {
-    if (infile_) 
-      fclose(infile_);
-    if (outfile_)
-      fclose(outfile_);
-    
+    if (infile_) //aready has file so we need to clear and re init
+      do_init(type_catergory());
+    clear();
     infile_name_ = infile_name;
     infile_ = fopen(infile_name.c_str(), "rb");
   }
@@ -87,6 +85,10 @@ public:
   }
 
   void caculate_frequency() {
+#ifdef DEBUG
+    std::cout << "Encoder, !calculate each symbol frequency" 
+              << std::endl;
+#endif
     do_caculate_frequency(type_catergory());
   }
   
@@ -96,6 +98,10 @@ public:
   
   ///对整个文件编码
   void encode_file() {
+#ifdef DEBUG
+    std::cout << "Encoder, !encoding the whole file, write result to oufile" 
+              << std::endl;
+#endif
     do_encode_file(type_catergory());
   }
 
@@ -113,6 +119,8 @@ public:
   }
 
 private:
+  virtual void encode_each_byte(Buffer &reader, Buffer &writer) = 0;
+  
   void do_print_encode(char_tag, std::ostream& out);
   
   void do_init(char_tag) { 
@@ -148,7 +156,8 @@ private:
 protected:
   FILE*                 infile_;
   FILE*                 outfile_;
-  EncodeHashMap         encode_map_;
+
+  EncodeHashMap         encode_map_;     //Those two move specific encoder?TODO
   FrequencyHashMap      frequency_map_;
 
   std::string     infile_name_;        //for debug gen_enocde print log 

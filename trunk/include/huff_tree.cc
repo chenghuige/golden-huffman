@@ -158,7 +158,7 @@ do_gen_encode(Node* root, std::string& encode)
    encode_map_[root->key()] = encode;
    return;
  }
- encode.append("0");              //TODO how string operation is implemented what is the effecience??
+ encode.push_back('0');              //TODO how string operation is implemented what is the effecience??
  do_gen_encode(root->left(), encode);
  encode[encode.size() - 1] = '1';
  do_gen_encode(root->right(), encode);

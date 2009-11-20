@@ -19,11 +19,10 @@ void Encoder<_KeyType>::do_encode_file(char_tag)
   fseek (infile_ , 0 , SEEK_SET ); //Cur of infile_ to the start,we must read it again
   Buffer reader(infile_); 
   
-  unsigned char key;
-  while(reader.read_byte(key)) {
-    writer.write_string(encode_map_[key]);  //write encode
-    //std::cout << encode_map_[key];
-  }
+    //TODO one poosible way is to let the while be virtual so 
+  //we will not call so many virtual functions in while
+  encode_each_byte(reader, writer);
+ 
   writer.flush_buf();   //important! need to write all the things int the buf out even buf is not full
   //---deal with the last byte
   int left_bits = writer.left_bits();

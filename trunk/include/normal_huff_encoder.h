@@ -82,22 +82,29 @@ public:
   void set_file(const std::string& infile_name, std::string& outfile_name) {
     Encoder<_KeyType>::set_file(infile_name, outfile_name);
     set_out_file(infile_name, outfile_name);
+    clear_tree();       //we need to re start
   }
 
   ~NormalHuffEncoder() {
+    clear_tree();
+  }
+
+  void clear_tree() {
     if (phuff_tree_)
       delete phuff_tree_;
   }
 
   ///得到所有符号/单词的编码 
   void gen_encode() {
+#ifdef DEBUG
+    std::cout << "NormalHuffEncoder, gen encode" << std::endl;
+#endif
     //------------------------now the frequency_map_ is ready we can create the HuffTree
     phuff_tree_ = new Tree(this->encode_map_, this->frequency_map_);   
     phuff_tree_->gen_encode(); 
-    
-    #ifdef DEBUG   
+#ifdef DEBUG   
       print_log();
-    #endif
+#endif
   }
 
   // std::string tree_file_name  should be *.dot
@@ -109,18 +116,27 @@ public:
     std::cout << "Writting the encode info to the file " << out_file_name << std::endl;
     this->print_encode(out_file); 
     out_file.close();
-    #ifdef DEBUG2               //only draw graph when DEBUG2 is setting
+#ifdef DEBUG2               //only draw graph when DEBUG2 is setting
     if (tree_file_name == "")
       phuff_tree_->print();
     else
       phuff_tree_->print(tree_file_name);
-    #endif 
+#endif 
   }
  
   ///写入压缩文件头部的huff_tree信息,以便解压缩的时候恢复
   virtual void write_encode_info() {
     phuff_tree_->serialize_tree(this->outfile_);
   }
+
+private:
+  virtual void encode_each_byte(Buffer &reader, Buffer &writer) { 
+    unsigned char key;
+    while(reader.read_byte(key)) 
+      writer.write_string(this->encode_map_[key]);
+  }
+
+
 private:
   Tree* phuff_tree_;  //HuffEnocder use a HuffTree to help gen encode
 };

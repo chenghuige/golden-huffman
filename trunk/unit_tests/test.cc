@@ -79,12 +79,40 @@ void compressor_func_test()
 }
 
 
+
 //-------------------------------------Testing normal huffman char 
 //------------------------------*Step1 is to compress a file,perf test!
 TEST(normal_huff_char, compress_perf)
 {
     compressor.compress();
 }
+
+TEST(normal_huff_char, compress_perf_calcFreq)
+{
+   compressor.set_file(infile_name, outfile_name);
+   //read file and calc           --done by Encoder
+   compressor.encoder_.caculate_frequency();    
+}
+
+TEST(normal_huff_char, compress_perf_genEncode)
+{
+    //gen encode based on frequnce --done by specific encoder
+    compressor.encoder_.gen_encode(); 
+}
+
+TEST(normal_huff_char, compress_perf_writeEncodeInfo)
+{
+    //write outfile header(encoding info) ---done by specific encoder
+    compressor.encoder_.write_encode_info();
+}
+
+TEST(normal_huff_char, compress_perf_encodeFile)
+{
+    //read infile,translate to outfile,   ---done by Encoder
+    compressor.encoder_.encode_file();         
+}
+
+
 
 //------------------------------*Step2 is to decompress the file compressed in step1,perf test!
 TEST(normal_huff_char, decomress_perf)
@@ -100,7 +128,7 @@ TEST(normal_huff_char, func)
 {
   compressor_func_test();
 }
-
+//
 //-------------------------------------Testing canonical huffman char 
 //------------------------------*Step1 is to compress a file,perf test!
 TEST(canonical_huff_char, compress_perf)
@@ -108,32 +136,33 @@ TEST(canonical_huff_char, compress_perf)
   compressor2.compress();
 }
 
-#ifdef DEBUG
-TEST(canonical_huff_char, encoding_length_func)
-{
-  //TODO auto? here can?
-  //std::string *normal_length 
-  //  = compressor.encoder_.encode_map_;  //string array
-  long long sum1 = 0, sum2 = 0;
-  long long num1 = 0, num2 = 0;
-  for (int i = 0 ; i < 256 ; i++) {
-    unsigned char key = i;
-    int normal_len = compressor.encoder_.encode_map_[i].length();
-    int canoni_len = compressor2.encoder_.length_[i];
-    long long normal_frq = compressor.encoder_.frequency_map_[i];
-    long long canoni_frq = compressor2.encoder_.frequency_map_[i];
-    EXPECT_EQ(normal_len, canoni_len) << i << key;
-    EXPECT_EQ(normal_frq, canoni_frq) << i << key;
-    num1 += normal_frq;
-    num2 += canoni_frq;
-    sum1 += normal_frq * normal_len;
-    sum2 += canoni_frq * canoni_len;
-  }
-  float normal_avg = float(sum1)/num1;
-  float canoni_avg = float(sum2)/num2;
-  EXPECT_FLOAT_EQ(normal_avg, canoni_avg);
-}
-#endif
+//#ifdef DEBUG
+//TEST(canonical_huff_char, encoding_length_func)
+//{
+//  //TODO auto? here can?
+//  //std::string *normal_length 
+//  //  = compressor.encoder_.encode_map_;  //string array
+//  long long sum1 = 0, sum2 = 0;
+//  long long num1 = 0, num2 = 0;
+//  for (int i = 0 ; i < 256 ; i++) {
+//    unsigned char key = i;
+//    int normal_len = compressor.encoder_.encode_map_[i].length();
+//    int canoni_len = compressor2.encoder_.length_[i];
+//    long long normal_frq = compressor.encoder_.frequency_map_[i];
+//    long long canoni_frq = compressor2.encoder_.frequency_map_[i];
+//    EXPECT_EQ(normal_len, canoni_len) << i << key;
+//    EXPECT_EQ(normal_frq, canoni_frq) << i << key;
+//    //EXPECT_LE(normal_len, 8) << i << key;
+//    num1 += normal_frq;
+//    num2 += canoni_frq;
+//    sum1 += normal_frq * normal_len;
+//    sum2 += canoni_frq * canoni_len;
+//  }
+//  float normal_avg = float(sum1)/num1;
+//  float canoni_avg = float(sum2)/num2;
+//  EXPECT_FLOAT_EQ(normal_avg, canoni_avg);
+//}
+//#endif
 
 ////------------------------------*Step2 is to decompress the file compressed in step1,perf test!
 //TEST(canonical_huff_char, decomress_perf)
@@ -159,13 +188,10 @@ int main(int argc, char *argv[])
 
   compressor.set_file(infile_name, outfile_name);
   //compressor.clear();
+  outfile_name.clear();
   compressor2.set_file(infile_name, outfile_name);
   
   //testing::GTEST_FLAG(output) = "xml:";
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
-
-
-
-
