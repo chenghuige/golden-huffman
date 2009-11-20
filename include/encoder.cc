@@ -38,6 +38,7 @@ void Encoder<_KeyType>::do_encode_file(char_tag)
   fflush(outfile_);    //force to the disk
 }
 
+//TODO to be moved to normal huff encoder since it is encoder type dependent like encode_map_
 template<typename _KeyType>
 void Encoder<_KeyType>::do_print_encode(char_tag, std::ostream& out)
 {

@@ -151,13 +151,19 @@ public:
   typedef DecodeHuffTree<_KeyType>   Tree;
 public:
   NormalHuffDecoder(const std::string& infile_name, std::string& outfile_name)
-      : Decoder<_KeyType>(infile_name, outfile_name){
-    phuff_tree_ = new Tree(this->infile_, this->outfile_);
+      : Decoder<_KeyType>(infile_name, outfile_name), phuff_tree_(NULL){
+    //phuff_tree_ = new Tree(this->infile_, this->outfile_);
   }
   ~NormalHuffDecoder() {
-    delete phuff_tree_;
+    clear_tree();
+  }
+  void clear_tree() {
+    if (phuff_tree_) {
+      delete phuff_tree_;
+    }
   }
   void get_encode_info() {
+    phuff_tree_ = new Tree(this->infile_, this->outfile_);
     phuff_tree_->build_tree();
   }
   void decode_file() {

@@ -186,11 +186,6 @@ do_serialize_tree(Node* root, Buffer& writer)
 template <typename _KeyType>
 void DecodeHuffTree<_KeyType>::decode_file()
 {
-  int a[30];
-  for (int i = 0 ; i < 30 ; i++) {
-    a[i] = 3;
-  }
-    
   Buffer writer(outfile_);
   unsigned char left_bit, last_byte;
   reader_.read_byte(left_bit);
@@ -226,8 +221,6 @@ decode_byte(unsigned char c, Buffer& writer, Node*& cur_node, int bit_num)
     }
   }
 }
-
-
 
 
 //help debug to see if the tree rebuild from file is the same as the intial one
