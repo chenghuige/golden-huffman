@@ -1,0 +1,49 @@
+
+I.How to build?
+1. mkdir build
+2. cd build
+3. cmake ..
+4. make
+will generate ./utet which is a test of the compressor and decompressor
+the source code of the test is /unit_ests/test.cc
+
+
+II.File structure
+1./include
+  All source code relating to compressor/encoder and decomressor/decoder
+  Decoder is in the same file of encoder,ie encoder.h will provide
+  class Encoder and Decoder  normal_huff_encoder.h will provide 
+  both class NormalHuffEncoder and NormalHuffDecoder
+2./utils
+  Helper classes.Right now only
+  /utils/include/buffer.h
+  provide the help of buffered file read write.
+3./unit_tests
+  The unit tests and show how to use the compressor and decompressor.
+  Ringht now only test.cc
+
+III.Dependence
+  With out setting DEBUG2,DEBUG,
+  int /build
+  cmake -DDEBUG2=off -DDEBUG=off ..
+  cmake ..
+  make
+  We need nothing else.
+  
+  If setting DEBUG,will print log and also running tests.
+  You need to install google test for /unitest/tests.cc
+  I may also in source files using google test in DEBUG mode.
+
+  If setting DEBUG2
+  We use this mode to print the huff_tree created in normal huff encodeing.
+  So if you do not care this feature,do not turn it on.
+  This feature will depend on 
+  python, boost.python, pygraphviz.
+  So you need to have python installed with shared lib,also install boost.python
+  and pygraphviz.
+
+  Please see CMakeLists.txt in the top dir, you may need to change the specific
+  include directories and lib link directories.
+
+Thanks:) 
+goldenlock
