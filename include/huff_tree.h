@@ -276,7 +276,10 @@ public:
 
 private:
   void do_build_tree(Node*& root);
+  
   void decode_byte(unsigned char c, Buffer& writer, Node*& cur_node, int bit_num = 8);
+
+  void decode_bit(int bit, Buffer& writer, Node*& cur_node);
 
 private:  
   FILE*  infile_;

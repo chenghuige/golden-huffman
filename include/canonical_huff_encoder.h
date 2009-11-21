@@ -297,7 +297,7 @@ public:
       int start_pos[], int first_code[], int max_length) 
   {
     Buffer writer(outfile_);
-
+    
     //TODO!! right now its is ok since 256 symbols at most!
     //But if using word the symbols is large
     //So need at least a int type 4 bytes!
@@ -324,6 +324,8 @@ public:
   }
   
   ///empty since already done in gen_encode() TODO better arrange class Compressor.compress()?
+  //FIXME FIXME consider still use it ? and make like symbol first_code to be class data member?
+  //which one is better choice?????
   void write_encode_info() {
   }
 
@@ -345,7 +347,6 @@ private:
   int codeword_[256];  //do not use encode_map_  in the base TODO TODO unsinged int?
 };
 
-
 //TODO right now unlike encoder decoder do not support reuse! set_file
 template<typename _KeyType>
 class CanonicalHuffDecoder : public Decoder<_KeyType> {
@@ -363,7 +364,6 @@ public:
     reader_.read_byte(n);
     //FIXME
     n = 256;            //now for char 256
-    symbol_.resize(n);
 #ifdef DEBUG
     std::cout << "symbol num is " << (int)n << std::endl;
 #endif
@@ -374,34 +374,18 @@ public:
       reader_.read_byte(symbol_[i]);
     
     int max_length;
+    //do not use vector but array
     reader_.read_byte(max_length);   //max encoding length
-    start_pos_.resize(max_length + 1);  //notice 0 is unused,so max_length + 1 is th size!!!!fixed
-    first_code_.resize(max_length + 1);
-
 #ifdef DEBUG
     std::cout << "max encoding length is " << max_length << std::endl;
 #endif
 
-      
     for (int i = 1; i <= max_length; i++) {  //from 1!
       reader_.read_byte(start_pos_[i]);
       reader_.read_byte(first_code_[i]);
     } 
   }
 
-  //TODO decode_file can share the same frame work
-  //so can be in the base Decoder,and using virtual decode_byte
-  //but 2 problems will occour
-  //1. decode_byte be virtual function may affect speed 
-  //2. reader_ has to be in the base and carefully passed
-  //TODO now a little code copy, if we change the
-  //store method sequence in the Encoder.encode_file
-  //Then NormalHuffDecoder.decode_file using huff_tree
-  //and here CanonicalHuffDecoder all must change:(
-  //FIXME better structure your code
-  //may be decode_file(Buffer &reader)
-  //or decode_file(Buffer &reader, Buffer &writer);
-  //HuffTree use the reader_ passed by Decoder not pass infile_
   void decode_file() 
   {
     Buffer writer(this->outfile_);
@@ -424,9 +408,6 @@ public:
 
 private:
 
-  //FIXME may be not start from 1 bit but the min_encoding_length
-  //carefully deal with 22 444  withou length1, 2, cases like this
-  //TODO really use read bit? speed?
   void decode_byte(unsigned char c, Buffer& writer, int &v, int &len, int bit_num = 8)
   {
     std::bitset<8> bits(c);
@@ -435,9 +416,6 @@ private:
       v = v * 2 + bits[i];  //TODO * and << which is quicker?
       len++;                //length add 1
       if (v >= first_code_[len]) {  //OK in length len we translate one symbol
-        //TODO for word based how ?
-        //std::cout << len << " " << v << " " << start_pos_[len] << std::endl;
-        //std::cout << symbol_[start_pos_[len] + v - first_code_[len]] << std::endl;
         writer.write_byte(symbol_[start_pos_[len] + v - first_code_[len]]);
         v = 0;
         len = 0;        //fished one translation set to 0
@@ -446,18 +424,11 @@ private:
   }
 
 private:
-  //TODO see the performance comparing with int []!
-  //if we use int [] than we must get the length in get_encode_info, then
-  //decode_file must be in get_encode_info
-  //like at last of get_encode_info()
-  //decode_file(int symbol[], int start_pos[])
-  //, other wise we can not share data!
-  std::vector<int>  symbol_;       //size n   index for key
-  std::vector<int>  start_pos_;    //size max_encoding_length index for symbol
-  std::vector<int>  first_code_;
+  int symbol_[256];         //symbol less than 256
+  int start_pos_[64];       //encoding max length less than 32 TODO may > 32?
+  int first_code_[64];
   Buffer            reader_;
 };
-
 
 //------------------------------------------------------------------------------------------
 

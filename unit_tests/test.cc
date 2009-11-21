@@ -27,7 +27,8 @@
 #include "compressor.h"  
 #include "normal_huff_encoder.h"
 #include "canonical_huff_encoder.h"
-
+#include <boost/lexical_cast.hpp>
+#include <boost/array.hpp>
 
 #include <gtest/gtest.h> //using gtest make sure it is first installed on your system
 using namespace std;
@@ -83,14 +84,149 @@ void compressor_func_test()
 
 }
 
+void normal_huff_char_compress() 
+{
+  outfile_name.clear();
+  compressor.set_file(infile_name, outfile_name);
+  compressor.compress();
+}
+
+void normal_huff_char_decompress() 
+{
+  infile_name2 = outfile_name;
+  outfile_name2.clear();
+  Decompressor<> decompressor(infile_name2, outfile_name2);
+  decompressor.decompress();
+}
+
+void canonical_huff_char_compress()
+{
+  outfile_name.clear();
+  compressor2.set_file(infile_name, outfile_name);
+  compressor2.compress();
+}
+
+void canonical_huff_char_decompress()
+{
+  infile_name2 = outfile_name;
+  outfile_name2.clear();
+  Decompressor<CanonicalHuffDecoder> decompressor2(infile_name2, outfile_name2);
+  decompressor2.decompress();
+}
+
+void normal_huff_char_compress(const string &infile_name) 
+{
+  outfile_name.clear();
+  compressor.set_file(infile_name, outfile_name);
+  compressor.compress();
+}
+
+void normal_huff_char_decompress(const string &infile_name2) 
+{
+  Decompressor<> decompressor(infile_name2, outfile_name2);
+  decompressor.decompress();
+}
+
+void canonical_huff_char_compress(const string &infile_name)
+{
+  outfile_name.clear();
+  compressor2.set_file(infile_name, outfile_name);
+  compressor2.compress();
+}
+
+void canonical_huff_char_decompress(const string &infile_name2)
+{
+  Decompressor<CanonicalHuffDecoder> decompressor2(infile_name2, outfile_name2);
+  decompressor2.decompress();
+}
+
+//class Foo {
+//public:
+//  ~Foo() {
+//    cout << "destruct" << endl;
+//  }
+//  int x;
+//};
+//
+//TEST(vector, perf) 
+//{
+//  vector<Foo> vec;
+//  vec.resize(4);
+//  for (long long i = 0; i < 32*1024*24; i++)
+//    for (int j = 0; j < 4; j++)
+//      vec[j].x = j + 1;
+//}
+//
+//TEST(array, perf)
+//{
+//  Foo array[4];
+//  for (long long i = 0; i < 32*1024*24; i++)
+//    for (int j = 0; j < 4; j++)
+//      array[j].x = j + 1;
+//}
+//
+//TEST(new_array, perf)
+//{
+//  Foo *array;
+//  array = new Foo[4];
+//  for (long long i = 0; i < 32*1024*24; i++)
+//    for (int j = 0; j < 4; j++)
+//      array[j].x = j + 1;
+//  //delete [] array;
+//}
+//
+//
+//TEST(boost_array, perf)
+//{
+//  boost::array<Foo, 4> boost_array;
+//  for (long long i = 0; i < 32*1024*24; i++)
+//    for (int j = 0; j < 4; j++)
+//      boost_array[j].x = j + 1;
+//}
+
+
+//TEST(vector, perf) 
+//{
+//  vector<int> vec(256);
+//  //vec.resize(256);
+//  for (long long i = 0; i < 32*1024*24; i++)
+//    for (int j = 0; j < 256; j++)
+//      vec[j] = j + 1;
+//}
+//
+//TEST(array, perf)
+//{
+//  int array[256];
+//  for (long long i = 0; i < 32*1024*24; i++)
+//    for (int j = 0; j < 256; j++)
+//      array[j] = j + 1;
+//}
+//
+//TEST(new_array, perf)
+//{
+//  int *array;
+//  array = new int[256];
+//  for (long long i = 0; i < 32*1024*24; i++)
+//    for (int j = 0; j < 256; j++)
+//      array[j] = j + 1;
+//}
+//
+//
+//TEST(boost_array, perf)
+//{
+//  boost::array<int, 256> boost_array;
+//  for (long long i = 0; i < 32*1024*24; i++)
+//    for (int j = 0; j < 256; j++)
+//      boost_array[j] = j + 1;
+//}
+
 
 
 //-------------------------------------Testing normal huffman char 
 //------------------------------*Step1 is to compress a file,perf test!
 TEST(normal_huff_char, compress_perf)
 {
-  compressor.set_file(infile_name, outfile_name);
-  compressor.compress();
+   normal_huff_char_compress(); 
 }
 
 ////TEST(normal_huff_char, compress_perf_calcFreq)
@@ -123,9 +259,7 @@ TEST(normal_huff_char, compress_perf)
 //------------------------------*Step2 is to decompress the file compressed in step1,perf test!
 TEST(normal_huff_char, decomress_perf)
 {
-  infile_name2 = outfile_name;
-  Decompressor<> decompressor(infile_name2, outfile_name2);
-  decompressor.decompress();
+  normal_huff_char_decompress(); 
 }
 
 //------------------------------*Step3 is to see if the final file(after compress and decompress)
@@ -139,9 +273,7 @@ TEST(normal_huff_char, func)
 //------------------------------*Step1 is to compress a file,perf test!
 TEST(canonical_huff_char, compress_perf)
 {
-  outfile_name.clear();
-  compressor2.set_file(infile_name, outfile_name);
-  compressor2.compress();
+  canonical_huff_char_compress();
 }
 //#ifdef DEBUG
 //TEST(canonical_huff_char, encoding_length_func)
@@ -174,10 +306,7 @@ TEST(canonical_huff_char, compress_perf)
 //FIXME file_name problem
 TEST(canonical_huff_char, decomress_perf)
 {
-  infile_name2 = outfile_name;
-  outfile_name2.clear();
-  Decompressor<CanonicalHuffDecoder> decompressor2(infile_name2, outfile_name2);
-  decompressor2.decompress();
+  canonical_huff_char_decompress();
 }
 
 TEST(canonical_huff_char, func)
@@ -194,7 +323,36 @@ int main(int argc, char *argv[])
     infile_name = argv[1];
   }
 
+
+  if (argc == 3) {
+    infile_name = argv[1];
+     
+    unsigned int type = boost::lexical_cast<unsigned int>(argv[2]);
+  
+    //n c
+    if (type == 1) {
+      normal_huff_char_compress(infile_name);
+    }
+
+    //n d
+    if (type == 2) {
+      normal_huff_char_decompress(infile_name);
+    }
+
+    //c c
+    if (type == 3) {
+      canonical_huff_char_compress(infile_name);
+    }
+
+    //c d
+    if (type == 4) {
+      canonical_huff_char_decompress(infile_name);
+    }
+
+    return 0;
+  }
   //testing::GTEST_FLAG(output) = "xml:";
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
+  
 }
