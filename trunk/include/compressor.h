@@ -58,7 +58,7 @@ public:
   Compressor() {}
   
   //TODO add set_file for decompressor
-  void set_file(std::string& infile_name, std::string& outfile_name) {
+  void set_file(const std::string& infile_name, std::string& outfile_name) {
     encoder_.set_file(infile_name, outfile_name);
   }
 
@@ -70,12 +70,14 @@ public:
   void compress() {
     encoder_.caculate_frequency();   //read file and calc           --done by Encoder
     encoder_.gen_encode();           //gen encode based on frequnce --done by specific encoder
-    
     //-------------------------------write the compressed file
     //notice some encoder might write encode info just at the last step of gen_encode so this will
     //not use a sperate process, choices 1. pass paremeter 2. as class varaibe sharing
     //TODO which is better?
+
+    /*write header*/
     encoder_.write_encode_info();    //write outfile header(encoding info) ---done by specific encoder
+    /*encode and write whole file */
     encoder_.encode_file();          //read infile,translate to outfile,   ---done by Encoder
   }
 

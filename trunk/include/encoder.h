@@ -53,6 +53,8 @@ public:
 public:
   //As a base Encoder only deal with infile_name
   //outfile_name is deal with specific encoder
+  //FIXME is it ok to open file in the constutor?? what if we failed to open?
+  //FIXME FIXME learn more about expection and safety
   Encoder(const std::string& infile_name)  
     : infile_name_(infile_name), infile_(fopen(infile_name.c_str(), "rb")){
     //infile_ = fopen(infile_name.c_str(), "rb");
@@ -147,12 +149,12 @@ private:
 
   }
 protected:
-  FILE*                 infile_;
+  FILE*                 infile_;    
   FILE*                 outfile_;
 
-  FrequencyHashMap      frequency_map_;
+  FrequencyHashMap      frequency_map_;      //all encoders will use the same frequcy_map_
 
-  std::string     infile_name_;        //for debug gen_enocde print log 
+  std::string           infile_name_;        //for debug gen_enocde print log 
 
 };
 

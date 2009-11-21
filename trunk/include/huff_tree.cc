@@ -1,6 +1,10 @@
 #define HUFF_TREE_CC_
+
+#include <bitset>
 #include "huff_tree.h"
 
+//FIXME how make your code more general for eaxmple for Chinese character file,
+//may be 2 bytes as a symbol is more acceptable!! that means 16k enoding table
 namespace glzip{
 
 //--------------------------------------------------------------HuffTree
@@ -183,6 +187,7 @@ do_serialize_tree(Node* root, Buffer& writer)
 }
 
 //---------------------------------------------------DecodeHuffTree
+///*byte based method*/
 template <typename _KeyType>
 void DecodeHuffTree<_KeyType>::decode_file()
 {
@@ -202,14 +207,51 @@ void DecodeHuffTree<_KeyType>::decode_file()
   fflush(outfile_);
 }
 
-#include <bitset>
+///* bit based method, it works however is slow TODO FIXME:( */
+//template <typename _KeyType>
+//void DecodeHuffTree<_KeyType>::decode_file()
+//{
+//  Buffer writer(outfile_);
+//  unsigned char left_bit, last_byte;
+//  reader_.read_byte(left_bit);
+//  reader_.read_byte(last_byte);
+//  //--------------------------------------decode each byte
+//  int bit;
+//  Node* cur_node = root();
+//  while (reader_.read_bit(bit)) 
+//    decode_bit(bit, writer, cur_node);
+//  //--------------------------------------deal with the last byte
+//  if (left_bit) {
+//    std::bitset<8> bits(last_byte);
+//    for (int i = 7; i >= left_bit; i--) 
+//      decode_bit(bits[i], writer, cur_node);
+//  }
+//  writer.flush_buf();
+//  fflush(outfile_);
+//}
+
+template <typename _KeyType>
+void DecodeHuffTree<_KeyType>::
+decode_bit(int bit, Buffer& writer, Node*& cur_node)
+{
+  if (bit)
+    cur_node = cur_node->right_;
+  else
+    cur_node = cur_node->left_;
+
+  if (cur_node->is_leaf()) {
+    writer.write_byte(cur_node->key_);
+    cur_node = root();
+  }
+}
+
 template <typename _KeyType>
 void DecodeHuffTree<_KeyType>::
 decode_byte(unsigned char c, Buffer& writer, Node*& cur_node, int bit_num)
 {
   std::bitset<8> bits(c);
-  int end = 7 - bit_num;
-  for (int i = 7; i > end; i--) {
+  int end = 8 - bit_num;
+  for (int i = 7; i >= end; i--) {
     if (bits[i])
       cur_node = cur_node->right_;
     else
