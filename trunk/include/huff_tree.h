@@ -164,7 +164,7 @@ private:
   //Note it is a binary tree pringing function specialized for
   //hufftree which do not need to use invisiable node for one left or right null child!
   //For a normal sence binary tree may need to write another one.
-  long long print(Node* node, boostpy::object &tree_graph, 
+  long long do_print(Node* node, boostpy::object &tree_graph, 
     long long &key_num, long long &invs_num);
 #endif
 

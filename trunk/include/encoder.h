@@ -49,26 +49,24 @@ template<typename _KeyType>
 class Encoder {
 public:
   typedef typename TypeTraits<_KeyType>::FrequencyHashMap        FrequencyHashMap;
-  typedef typename TypeTraits<_KeyType>::EncodeHashMap           EncodeHashMap;
   typedef typename TypeTraits<_KeyType>::type_catergory          type_catergory;
 public:
-  Encoder(const std::string& infile_name, std::string& outfile_name) 
+  //As a base Encoder only deal with infile_name
+  //outfile_name is deal with specific encoder
+  Encoder(const std::string& infile_name)  
     : infile_name_(infile_name), infile_(fopen(infile_name.c_str(), "rb")){
     //infile_ = fopen(infile_name.c_str(), "rb");
-    do_init(type_catergory());
+    init();
   }
 
-  Encoder(): infile_(NULL), outfile_(NULL){
-    do_init(type_catergory());
-  }
+  Encoder(): infile_(NULL), outfile_(NULL){}
  
   //if not given file name at first be sure to set_file before compressing
-  virtual void set_file(const std::string& infile_name, std::string& outfile_name) {
-    if (infile_) //aready has file so we need to clear and re init
-      do_init(type_catergory());
+  void set_infile(const std::string& infile_name) {
     clear();
     infile_name_ = infile_name;
     infile_ = fopen(infile_name.c_str(), "rb");
+    init();
   }
   
   void clear() {
@@ -79,6 +77,7 @@ public:
     infile_ = NULL;
     outfile_ = NULL;
   }
+  
   virtual ~Encoder() {
     //std::cout << "destuct encoder\n";
     clear();
@@ -105,30 +104,24 @@ public:
     do_encode_file(type_catergory());
   }
 
-  ///打印huffman 压缩过程中 字符编码表及相关统计数据
-  void print_encode(std::ostream& out = std::cout) {
-    do_print_encode(type_catergory(), out);
-  }
-
-  void print_encode_length(std::ostream& out = std::cout) {
-    //write the encoding length info to a separate file for conving that the canonical huff encoder
-    //has correctly cacluate the encoding length just as the norma huff encoder
-    for (int i = 0 ; i < 256 ; i++) {
-      out << encode_map_[i].length() << std::endl;
-    }
-  }
+  //TODO add one print encode interface for Encoder
+  //may be for the Compressor?
+  //FIXME right now print encode all define sperately
+  //in spcific encoder
 
 private:
   virtual void encode_each_byte(Buffer &reader, Buffer &writer) = 0;
   
-  void do_print_encode(char_tag, std::ostream& out);
+  //!! do not name init() and init(char_tag)
+  void init() {
+    do_init(type_catergory());
+  }
   
   void do_init(char_tag) { 
     //for char we use array for frequence map, and vector<string> 
     //for encode map,we have to init them.
     for (int i = 0; i < 256; i++)
       frequency_map_[i] = 0;
-    encode_map_.resize(256);  
   }
   
   //for key type is unsigned char
@@ -157,7 +150,6 @@ protected:
   FILE*                 infile_;
   FILE*                 outfile_;
 
-  EncodeHashMap         encode_map_;     //FIXME move specific encoder?TODO to be moved to normal huff encoder
   FrequencyHashMap      frequency_map_;
 
   std::string     infile_name_;        //for debug gen_enocde print log 

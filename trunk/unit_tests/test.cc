@@ -51,6 +51,11 @@ void compressor_func_test()
   num1 = num2 = 0;
   FILE* p_orignal;
   FILE* p_final;
+  
+  cout << "Test pass if the two files is of the same content" << endl;
+  cout << "Original file is " << infile_name << endl;
+  cout << "Final file is " << outfile_name2 << endl;
+
   p_orignal = fopen(infile_name.c_str(), "rb");
   p_final = fopen(outfile_name2.c_str(), "rb");
   //p_final = fopen("big.log2", "rb");  //one failure test 
@@ -82,11 +87,12 @@ void compressor_func_test()
 
 //-------------------------------------Testing normal huffman char 
 //------------------------------*Step1 is to compress a file,perf test!
-//TEST(normal_huff_char, compress_perf)
-//{
-//    compressor.compress();
-//}
-//
+TEST(normal_huff_char, compress_perf)
+{
+  compressor.set_file(infile_name, outfile_name);
+  compressor.compress();
+}
+
 ////TEST(normal_huff_char, compress_perf_calcFreq)
 ////{
 ////   compressor.set_file(infile_name, outfile_name);
@@ -114,36 +120,29 @@ void compressor_func_test()
 //
 //
 //
-////------------------------------*Step2 is to decompress the file compressed in step1,perf test!
-//TEST(normal_huff_char, decomress_perf)
-//{
-//  infile_name2 = outfile_name;
-//  Decompressor<> decompressor(infile_name2, outfile_name2);
-//  decompressor.decompress();
-//}
-//
-////------------------------------*Step3 is to see if the final file(after compress and decompress)
-////-----------------------------------is the same as the original one.Functional test! 
-//TEST(normal_huff_char, func)
-//{
-//  compressor_func_test();
-//}
-//
+//------------------------------*Step2 is to decompress the file compressed in step1,perf test!
+TEST(normal_huff_char, decomress_perf)
+{
+  infile_name2 = outfile_name;
+  Decompressor<> decompressor(infile_name2, outfile_name2);
+  decompressor.decompress();
+}
+
+//------------------------------*Step3 is to see if the final file(after compress and decompress)
+//-----------------------------------is the same as the original one.Functional test! 
+TEST(normal_huff_char, func)
+{
+  compressor_func_test();
+}
+
 //-------------------------------------Testing canonical huffman char 
 //------------------------------*Step1 is to compress a file,perf test!
 TEST(canonical_huff_char, compress_perf)
 {
+  outfile_name.clear();
+  compressor2.set_file(infile_name, outfile_name);
   compressor2.compress();
 }
-
-//FIXME file_name problem
-TEST(canonical_huff_char, decomress_perf)
-{
-  infile_name2 = outfile_name;
-  Decompressor<CanonicalHuffDecoder> decompressor2(infile_name2, outfile_name2);
-  decompressor2.decompress();
-}
-
 //#ifdef DEBUG
 //TEST(canonical_huff_char, encoding_length_func)
 //{
@@ -172,20 +171,21 @@ TEST(canonical_huff_char, decomress_perf)
 //}
 //#endif
 
-////------------------------------*Step2 is to decompress the file compressed in step1,perf test!
-//TEST(canonical_huff_char, decomress_perf)
-//{
-//  infile_name2 = outfile_name;
-//  Decompressor<> decompressor2(infile_name2, outfile_name2);
-//  decompressor2.decompress();
-//}
-//
-////------------------------------*Step3 is to see if the final file(after compress and decompress)
-////-----------------------------------is the same as the original one.Functional test! 
-//TEST(canonicall_huff_char, func)
-//{
-//  compressor_func_test();
-//}
+//FIXME file_name problem
+TEST(canonical_huff_char, decomress_perf)
+{
+  infile_name2 = outfile_name;
+  outfile_name2.clear();
+  Decompressor<CanonicalHuffDecoder> decompressor2(infile_name2, outfile_name2);
+  decompressor2.decompress();
+}
+
+TEST(canonical_huff_char, func)
+{
+  compressor_func_test();
+}
+
+
 
 
 int main(int argc, char *argv[])
@@ -194,11 +194,6 @@ int main(int argc, char *argv[])
     infile_name = argv[1];
   }
 
-  compressor.set_file(infile_name, outfile_name);
-  //compressor.clear();
-  outfile_name.clear();
-  compressor2.set_file(infile_name, outfile_name);
-  
   //testing::GTEST_FLAG(output) = "xml:";
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

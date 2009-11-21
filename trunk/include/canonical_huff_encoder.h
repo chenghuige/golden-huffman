@@ -86,7 +86,7 @@ private:
 
 public:  
   CanonicalHuffEncoder(const std::string& infile_name, std::string& outfile_name) 
-      : Encoder<unsigned char>(infile_name, outfile_name) {
+      : Encoder<unsigned char>(infile_name) {
     set_out_file(infile_name, outfile_name);
   }
 
@@ -100,12 +100,14 @@ public:
   }
 
   void set_file(const std::string& infile_name, std::string& outfile_name) {
-    Encoder<unsigned char>::set_file(infile_name, outfile_name);
+    this->set_infile(infile_name);
     set_out_file(infile_name, outfile_name);
   }
 
   void gen_encode() {
+    //set up length_
     get_encoding_length();
+    //gen encode from length_ an write header at last step
     do_gen_encode(length_, 256);
   }
 
@@ -210,12 +212,12 @@ public:
     for (int i = 0; i < n; i++) {
       int len = l[i];
       if (len) {  //the caracter really exists for cha 256 l[i] > 0
-        encode_map_[i] = next_code[len]++;  //TODO pass encode map?
+        codeword_[i] = next_code[len]++;  //TODO pass encode map?
         symbol[start_pos[len]++] = i;   //bucket sorting --using index
       }
     }
 
-    //------------------OK now can write the header out
+    //------------------------------------------------OK now can write the header out!
     //we need to write the 
     //start_pos  (max_length) ,  we use start_pos_copy which is correct unmodified
     //first_code (max_length) 
@@ -239,7 +241,7 @@ public:
     out << setiosflags(ios::left) << setw(20) << "Character"
                                   << setw(20) << "Times"
                                   << setw(20) << "EncodeLength"
-                                  << setw(20) << "encode_map_[i]"
+                                  << setw(20) << "codeword_[i]"
                                   << setw(30) << "Encode" << "\n\n";
     for (int i = 0; i < n; i++) {
       if (symbol[i] != -1) {
@@ -252,19 +254,19 @@ public:
          out << setiosflags(ios::left) << setw(20) << "\\n"  
                                 << setw(20) << frequency_map_[j]
                                 << setw(20) << length_[j]
-                                << setw(20) << encode_map_[j]
+                                << setw(20) << codeword_[j]
                                 << setw(30) << code << "\n";
         } else if (key == ' ') {
           out << setiosflags(ios::left) << setw(20) << "space" 
                                 << setw(20) << frequency_map_[j]
                                 << setw(20) << length_[j]
-                                << setw(20) << encode_map_[j]
+                                << setw(20) << codeword_[j]
                                 << setw(30) << code << "\n";
         } else {
           out << setiosflags(ios::left) << setw(20) << key
                                 << setw(20) << frequency_map_[j]
                                 << setw(20) << length_[j]
-                                << setw(20) << encode_map_[j]
+                                << setw(20) << codeword_[j]
                                 << setw(30) << code << "\n";
         }
       }
@@ -275,7 +277,7 @@ public:
   /**get the encode string of index i(the symbol unsigned char(i))*/
   void get_encode_string(int i, std::string& s) 
   {
-    unsigned int code = encode_map_[i];
+    unsigned int code = codeword_[i];
     unsigned int len = length_[i];
     unsigned int mask = 1 << (len - 1);
     for (int i = 0; i < len; i++) {
@@ -333,16 +335,14 @@ private:
     unsigned char key;
     while(reader.read_byte(key)) 
       //what we provide is encode in int type and encode length
-      writer.write_bits(encode_map_[key], length_[key]);
+      writer.write_bits(codeword_[key], length_[key]);
   }
 
   /**cacluate each symbol's enoding length,will be the same as normal huffman*/
   void get_encoding_length();
 private: 
   int length_[256];  //store encode length lenghth_ do not support .size() :(
-
-  //int symbol_[256];  //n is 256 for char
-  int encode_map_[256];  //do not use encode_map_  in the base TODO TODO unsinged int?
+  int codeword_[256];  //do not use encode_map_  in the base TODO TODO unsinged int?
 };
 
 
