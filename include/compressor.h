@@ -72,11 +72,13 @@ public:
     encoder_.gen_encode();           //gen encode based on frequnce --done by specific encoder
     
     //-------------------------------write the compressed file
-    
+    //notice some encoder might write encode info just at the last step of gen_encode so this will
+    //not use a sperate process, choices 1. pass paremeter 2. as class varaibe sharing
+    //TODO which is better?
     encoder_.write_encode_info();    //write outfile header(encoding info) ---done by specific encoder
     encoder_.encode_file();          //read infile,translate to outfile,   ---done by Encoder
   }
- 
+
 private:
   _Encoder<_KeyType> encoder_;  //using enocder_ right now can be HuffEncoder or CanonicalEncoder 
 };

@@ -33,7 +33,7 @@ void HuffTree<_KeyType>::print(std::string result_file)
   long long key_num = 1;    //key num of node from 1 to ++
   long long invs_num = -1;  //key num of invisable node from -1 to --
 
-  print(root_, tree_graph, key_num, invs_num);
+  do_print(root_, tree_graph, key_num, invs_num);
 
   exec("tree_graph.graph_attr['epsilon']='0.001'", main_namespace);
   exec("tree_graph.layout('dot')", main_namespace);
@@ -54,7 +54,7 @@ void HuffTree<_KeyType>::print(std::string result_file)
 //For a normal sence binary tree may need to write another one.
 template <typename _KeyType>
 long long HuffTree<_KeyType>::
-print(Node* node, boostpy::object &tree_graph, 
+do_print(Node* node, boostpy::object &tree_graph, 
     long long &key_num, long long &invs_num)
 {
   using namespace boostpy;
@@ -86,14 +86,14 @@ print(Node* node, boostpy::object &tree_graph,
   
   //---------------------------recur of the left
   //hufftree must have lef child for non leaf, create and mark edge as 0
-  str l = str(print(node->left(), tree_graph, ++key_num, invs_num));
+  str l = str(do_print(node->left(), tree_graph, ++key_num, invs_num));
   
   tree_graph.attr("add_edge")(*make_tuple(c, l),
       **dict(make_tuple(make_tuple("label", str(0)))));
   
   //----------------------------rec of the right
   //hufftree must have right child for non leaf, create and mark edge as 1
-  str r = str(print(node->right(), tree_graph, ++key_num, invs_num));
+  str r = str(do_print(node->right(), tree_graph, ++key_num, invs_num));
 
   tree_graph.attr("add_edge")(*make_tuple(c, r),
       **dict(make_tuple(make_tuple("label", str(1)))));
