@@ -279,7 +279,8 @@ private:
   
   void decode_byte(unsigned char c, Buffer& writer, Node*& cur_node, int bit_num = 8);
 
-  void decode_bit(int bit, Buffer& writer, Node*& cur_node);
+  //removed support for decode_bit! Buffer do not support read_bit!
+  //void decode_bit(int bit, Buffer& writer, Node*& cur_node);
 
 private:  
   FILE*  infile_;

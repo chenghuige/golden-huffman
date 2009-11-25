@@ -47,11 +47,12 @@ public:
   typedef std::tr1::unordered_map<_KeyType, size_t> HashMap;
 };
 //---special TypeTraits for unsigned char, character based encoding
+#define CharSymbolNum 257
 template<>
 class TypeTraits<unsigned char> {
 public:
   typedef char_tag type_catergory;
-  typedef long long FrequencyHashMap[256];
+  typedef long long FrequencyHashMap[CharSymbolNum];        //use 256 + 1,1 is the end of encoding mark
   typedef std::vector<std::string>    EncodeHashMap;
 };
 //---special TypeTraits for std::string, word based encoding

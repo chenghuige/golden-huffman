@@ -230,20 +230,23 @@ void DecodeHuffTree<_KeyType>::decode_file()
 //  fflush(outfile_);
 //}
 
-template <typename _KeyType>
-void DecodeHuffTree<_KeyType>::
-decode_bit(int bit, Buffer& writer, Node*& cur_node)
-{
-  if (bit)
-    cur_node = cur_node->right_;
-  else
-    cur_node = cur_node->left_;
-
-  if (cur_node->is_leaf()) {
-    writer.write_byte(cur_node->key_);
-    cur_node = root();
-  }
-}
+/*since slow Buffer removed support for read bit, decode_bit
+ *TODO may try to use BitBuffer
+ * */
+//template <typename _KeyType>
+//void DecodeHuffTree<_KeyType>::
+//decode_bit(int bit, Buffer& writer, Node*& cur_node)
+//{
+//  if (bit)
+//    cur_node = cur_node->right_;
+//  else
+//    cur_node = cur_node->left_;
+//
+//  if (cur_node->is_leaf()) {
+//    writer.write_byte(cur_node->key_);
+//    cur_node = root();
+//  }
+//}
 
 template <typename _KeyType>
 void DecodeHuffTree<_KeyType>::

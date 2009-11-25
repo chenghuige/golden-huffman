@@ -86,6 +86,7 @@ private:
 };
 
 //---------------------------------------------------------Decompressor
+//TODO using  template<typename> class _Decoder = NormalHuffDecoder will limit the _Decoder type
 template<
   template<typename> class _Decoder = NormalHuffDecoder,
   typename _KeyType = unsigned char
