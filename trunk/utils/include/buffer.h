@@ -49,6 +49,9 @@ namespace glzip {
  */
 
 //TODO std::size_t N? learn more about std::size_t
+//buf_capacity_ should not exceed int capacity
+
+#define IntSize sizeof(int)
 template <int buf_capacity_ = 64*1024>
 class FixedFileBuffer {
 public:
@@ -60,8 +63,11 @@ public:
     memset(buf_, 0, buf_capacity_ + 8);
     //fill_buf();   //FIXME may be ReaderBuffer and WriterBuffer better TODO 
   }
-
   //------------------------------------------------------fill and flush buf
+  bool is_full() {
+    return cur_ == buf_used_;
+  }
+
   int fill_buf() {
     cur_ = 0;
     buf_used_ = fread(buf_, 1, buf_capacity_, file_);
@@ -112,12 +118,46 @@ public:
   //for word based the header is large or buf_capacity is small!
   //FIXME Need to make sure fill buf first at constructor
   //FIXME read_int and write_int is machine related! int be 32bits!
+
+//FIXME FIXME!
   void read_int(unsigned int& v) {
-    //v = buf_[cur_++];  //first read in may not fill buf,TODO separate ReaderBuffer and WriterBuffer
-    read_byte(v);
-    for(int i = 0; i < 3; i++)
+    //FIXME why if (cur_ + 4 <= buf_used_) wrong?
+    //if (cur_ + 4 <= buf_used_)  //there are at leat 4 bytes can read from buffer
+    //  fast_read_int(v);
+    //else {
+      read_byte(v);
+      unsigned int v2;
+      for (int i = 0; i < (IntSize - 1); i++) {
+        read_byte(v2);
+        v = v << 8 | v2;
+      }
+    //}
+  }
+
+  //this is for canonical decoder only!! for if using this read_int do not use read_byte
+  //because this will have to make sure each read int is on 4 byte alined address
+//  void read_int(unsigned int& v) {
+//    read_int(v);  //first read in may not fill buf,TODO separate ReaderBuffer and WriterBuffer
+//    for (int i = 0; i < (IntSize - 1); i++)
+//      v = v << 8 | buf_[cur_++];
+//  }
+
+
+//  void safe_read_int(unsigned int& v) {
+//    read_byte(v);
+//    unsigned int v2;
+//    for (int i = 0; i < (IntSize - 1); i++) {
+//      read_byte(v2);
+//      v = v << 8 | v2;
+//    }
+//  }
+
+  void fast_read_int(unsigned int& v) {
+    v = buf_[cur_++];  //first read in may not fill buf,TODO separate ReaderBuffer and WriterBuffer
+    for (int i = 0; i < (IntSize - 1); i++)
       v = v << 8 | buf_[cur_++];
   }
+
 
   //----------------------------------------------writing
   void write_byte(unsigned char c) {
@@ -142,11 +182,18 @@ public:
   //   int    big_end               small_end
   //FIXME unsigned int not 32bits? Now I think will also work           
   void write_int(unsigned int v) {
-    for (int i = 0; i < 3; i++) {
-      buf_[cur_++] = (v >> 24);
+    if (cur_ + 4 > buf_used_)  //there are at leat 4 bytes can write from buffer
+      flush_buf();
+    fast_write_int(v);
+  }
+
+  void fast_write_int(unsigned int v) {
+    int shift = 8*(IntSize-1);
+    for (int i = 0; i < (IntSize - 1); i++) {
+      buf_[cur_++] = (v >> shift);
       v <<= 8;
     }
-    buf_[cur_++] = (v >> 24);
+    buf_[cur_++] = (v >> shift);
   }
   //-------------------------------------------special write bit helper for compressor
   //for writing string or bits,the last byte,
@@ -203,7 +250,8 @@ typedef FixedFileBuffer<> Buffer;
  * 64 bit for int? FIXME
  * TODO read and understand gzip and mg
  */
-#define BitBufferSize 64
+#define BitBufferSize  8*sizeof(long long)
+#define Shift          BitBufferSize/2
 class BitBuffer {
 public:
   BitBuffer(Buffer& reader):reader_(reader) {
@@ -219,7 +267,8 @@ public:
     unsigned int v1, v2;
     reader_.read_int(v1);
     reader_.read_int(v2);
-    buf_ = (((unsigned long long)(v1)) << 32) | v2 ; 
+
+    buf_ = (((unsigned long long)(v1)) << (Shift)) | v2 ; 
     bit_count_ = BitBufferSize;
   }
 

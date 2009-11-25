@@ -740,20 +740,24 @@ public:
     unsigned int symbol = symbol_[start_pos_[len] + ((v - first_code_[len]) >> (buf_size - len))];
 
     unsigned int vx;
-    while(symbol != end_mark) {
+    while (symbol != end_mark) {
       writer_.write_byte(symbol);
       v <<= len;                                         
       v |= bit_buffer.read_bits(len);       //insert the next len bits from file stream
       vx = (v >> (buf_size - TableLength)); //uper 8 bits of v
       len = lookup_table_[vx];              //first search in the look up table
-      if (len > TableLength)                //have to search again from len
+      if (len > TableLength) {                //have to search again from len
         len = canonical_help::cfind(first_code_, len, v);
+        //while (v < first_code_[len])
+        //  len++;
+      }
       symbol = symbol_[start_pos_[len] + ((v - first_code_[len]) >> (buf_size - len))];
     }
 
-#ifdef DEBUG3
+#ifdef DEBUG
     std::cout << "searching times in cfind is " << canonical_help::search_times << std::endl;
 #endif
+
     writer_.flush_buf();
     fflush(this->outfile_);
   }
