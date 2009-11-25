@@ -36,7 +36,7 @@ using namespace glzip; //Notice it is must be after ,using namesapce is dangerou
 
 //TODO using class for google test
 
-string infile_name("big.log");
+string infile_name("5big.log");
 string outfile_name;
 string infile_name2, outfile_name2;
 /* 
@@ -123,6 +123,7 @@ void normal_huff_char_compress(const string &infile_name)
 
 void normal_huff_char_decompress(const string &infile_name2) 
 {
+  outfile_name2.clear();
   Decompressor<> decompressor(infile_name2, outfile_name2);
   decompressor.decompress();
 }
@@ -134,11 +135,27 @@ void canonical_huff_char_compress(const string &infile_name)
   compressor2.compress();
 }
 
+void fast_canonical_huff_char_decompress(const string &infile_name2)
+{
+  outfile_name2.clear();
+  Decompressor<FastCanonicalHuffDecoder> decompressor2(infile_name2, outfile_name2);
+  decompressor2.decompress();
+}
+
 void canonical_huff_char_decompress(const string &infile_name2)
 {
+  outfile_name2.clear();
   Decompressor<CanonicalHuffDecoder> decompressor2(infile_name2, outfile_name2);
   decompressor2.decompress();
 }
+
+void table_canonical_huff_char_decompress(const string &infile_name2)
+{
+  outfile_name2.clear();
+  Decompressor<TableCanonicalHuffDecoder> decompressor2(infile_name2, outfile_name2);
+  decompressor2.decompress();
+}
+
 
 //class Foo {
 //public:
@@ -222,88 +239,95 @@ void canonical_huff_char_decompress(const string &infile_name2)
 
 
 
-//-------------------------------------Testing normal huffman char 
-//------------------------------*Step1 is to compress a file,perf test!
-TEST(normal_huff_char, compress_perf)
-{
-   normal_huff_char_compress(); 
-}
-
-////TEST(normal_huff_char, compress_perf_calcFreq)
-////{
-////   compressor.set_file(infile_name, outfile_name);
-////   //read file and calc           --done by Encoder
-////   compressor.encoder_.caculate_frequency();    
-////}
-////
-////TEST(normal_huff_char, compress_perf_genEncode)
-////{
-////    //gen encode based on frequnce --done by specific encoder
-////    compressor.encoder_.gen_encode(); 
-////}
-////
-////TEST(normal_huff_char, compress_perf_writeEncodeInfo)
-////{
-////    //write outfile header(encoding info) ---done by specific encoder
-////    compressor.encoder_.write_encode_info();
-////}
-////
-////TEST(normal_huff_char, compress_perf_encodeFile)
-////{
-////    //read infile,translate to outfile,   ---done by Encoder
-////    compressor.encoder_.encode_file();         
-////}
+////-------------------------------------Testing normal huffman char 
+////------------------------------*Step1 is to compress a file,perf test!
+//TEST(normal_huff_char, compress_perf)
+//{
+//   normal_huff_char_compress(); 
+//}
 //
+//////TEST(normal_huff_char, compress_perf_calcFreq)
+//////{
+//////   compressor.set_file(infile_name, outfile_name);
+//////   //read file and calc           --done by Encoder
+//////   compressor.encoder_.caculate_frequency();    
+//////}
+//////
+//////TEST(normal_huff_char, compress_perf_genEncode)
+//////{
+//////    //gen encode based on frequnce --done by specific encoder
+//////    compressor.encoder_.gen_encode(); 
+//////}
+//////
+//////TEST(normal_huff_char, compress_perf_writeEncodeInfo)
+//////{
+//////    //write outfile header(encoding info) ---done by specific encoder
+//////    compressor.encoder_.write_encode_info();
+//////}
+//////
+//////TEST(normal_huff_char, compress_perf_encodeFile)
+//////{
+//////    //read infile,translate to outfile,   ---done by Encoder
+//////    compressor.encoder_.encode_file();         
+//////}
+////
+////
+////
+////------------------------------*Step2 is to decompress the file compressed in step1,perf test!
+//TEST(normal_huff_char, decomress_perf)
+//{
+//  normal_huff_char_decompress(); 
+//}
 //
+////------------------------------*Step3 is to see if the final file(after compress and decompress)
+////-----------------------------------is the same as the original one.Functional test! 
+//TEST(normal_huff_char, func)
+//{
+//  compressor_func_test();
+//}
 //
-//------------------------------*Step2 is to decompress the file compressed in step1,perf test!
-TEST(normal_huff_char, decomress_perf)
-{
-  normal_huff_char_decompress(); 
-}
-
-//------------------------------*Step3 is to see if the final file(after compress and decompress)
-//-----------------------------------is the same as the original one.Functional test! 
-TEST(normal_huff_char, func)
-{
-  compressor_func_test();
-}
-
+////-------------------------------------Testing canonical huffman char 
+////------------------------------*Step1 is to compress a file,perf test!
+//TEST(canonical_huff_char, compress_perf)
+//{
+//  canonical_huff_char_compress();
+//}
+////#ifdef DEBUG
+////TEST(canonical_huff_char, encoding_length_func)
+////{
+////  //TODO auto? here can?
+////  //std::string *normal_length 
+////  //  = compressor.encoder_.encode_map_;  //string array
+////  long long sum1 = 0, sum2 = 0;
+////  long long num1 = 0, num2 = 0;
+////  for (int i = 0 ; i < 256 ; i++) {
+////    unsigned char key = i;
+////    int normal_len = compressor.encoder_.encode_map_[i].length();
+////    int canoni_len = compressor2.encoder_.length_[i];
+////    long long normal_frq = compressor.encoder_.frequency_map_[i];
+////    long long canoni_frq = compressor2.encoder_.frequency_map_[i];
+////    EXPECT_EQ(normal_len, canoni_len) << i << key;
+////    EXPECT_EQ(normal_frq, canoni_frq) << i << key;
+////    //EXPECT_LE(normal_len, 8) << i << key;
+////    num1 += normal_frq;
+////    num2 += canoni_frq;
+////    sum1 += normal_frq * normal_len;
+////    sum2 += canoni_frq * canoni_len;
+////  }
+////  float normal_avg = float(sum1)/num1;
+////  float canoni_avg = float(sum2)/num2;
+////  EXPECT_FLOAT_EQ(normal_avg, canoni_avg);
+////}
+////#endif
+//
+//FIXME file_name problem
 //-------------------------------------Testing canonical huffman char 
 //------------------------------*Step1 is to compress a file,perf test!
 TEST(canonical_huff_char, compress_perf)
 {
   canonical_huff_char_compress();
 }
-//#ifdef DEBUG
-//TEST(canonical_huff_char, encoding_length_func)
-//{
-//  //TODO auto? here can?
-//  //std::string *normal_length 
-//  //  = compressor.encoder_.encode_map_;  //string array
-//  long long sum1 = 0, sum2 = 0;
-//  long long num1 = 0, num2 = 0;
-//  for (int i = 0 ; i < 256 ; i++) {
-//    unsigned char key = i;
-//    int normal_len = compressor.encoder_.encode_map_[i].length();
-//    int canoni_len = compressor2.encoder_.length_[i];
-//    long long normal_frq = compressor.encoder_.frequency_map_[i];
-//    long long canoni_frq = compressor2.encoder_.frequency_map_[i];
-//    EXPECT_EQ(normal_len, canoni_len) << i << key;
-//    EXPECT_EQ(normal_frq, canoni_frq) << i << key;
-//    //EXPECT_LE(normal_len, 8) << i << key;
-//    num1 += normal_frq;
-//    num2 += canoni_frq;
-//    sum1 += normal_frq * normal_len;
-//    sum2 += canoni_frq * canoni_len;
-//  }
-//  float normal_avg = float(sum1)/num1;
-//  float canoni_avg = float(sum2)/num2;
-//  EXPECT_FLOAT_EQ(normal_avg, canoni_avg);
-//}
-//#endif
 
-//FIXME file_name problem
 TEST(canonical_huff_char, decomress_perf)
 {
   canonical_huff_char_decompress();
@@ -314,45 +338,63 @@ TEST(canonical_huff_char, func)
   compressor_func_test();
 }
 
+TEST(fast_canonical_huff_char, decomress_perf)
+{
+  fast_canonical_huff_char_decompress(outfile_name);
+}
+
+TEST(fast_canonical_huff_char, func)
+{
+  compressor_func_test();
+}
+
+TEST(table_canonical_huff_char, decomress_perf)
+{
+  table_canonical_huff_char_decompress(outfile_name);
+}
+
+TEST(table_canonical_huff_char, func)
+{
+  compressor_func_test();
+}
 
 
 
-int main(int argc, char *argv[])
+//TEST()
+
+int main(int argc, char *argv[]) 
 {
   if (argc == 2) {  //user input infile name
     infile_name = argv[1];
   }
-
-
   if (argc == 3) {
     infile_name = argv[1];
-     
     unsigned int type = boost::lexical_cast<unsigned int>(argv[2]);
-  
     //n c
     if (type == 1) {
       normal_huff_char_compress(infile_name);
     }
-
     //n d
     if (type == 2) {
       normal_huff_char_decompress(infile_name);
     }
-
     //c c
     if (type == 3) {
       canonical_huff_char_compress(infile_name);
     }
-
     //c d
     if (type == 4) {
       canonical_huff_char_decompress(infile_name);
     }
-
+    if (type == 5) {
+      fast_canonical_huff_char_decompress(infile_name);
+    }
+    if (type == 6) {
+      table_canonical_huff_char_decompress(infile_name);
+    }
     return 0;
   }
   //testing::GTEST_FLAG(output) = "xml:";
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
-  
 }

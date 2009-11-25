@@ -5,24 +5,24 @@ namespace glzip {
 
 //get encoding length 
 //space using is 
-//frequence map 256  long long
-//encoding map  256  string
-//length        256  int
-//group         256  int
-//queue         256  int
+//frequence map CharSymbolNum  long long
+//encoding map  CharSymbolNum  string
+//length        CharSymbolNum  int
+//group         CharSymbolNum  int
+//queue         CharSymbolNum  int
 void CanonicalHuffEncoder<unsigned char>::
 get_encoding_length()
 {
-  int group[256];  
+  int group[CharSymbolNum];  
   HuffNodeIndexGreater index_cmp(this->frequency_map_);
   HuffPRQUE queue(index_cmp);
 #ifdef DEBUG
   FrequencyHashMap freq_map_copy;
   std::copy(this->frequency_map_, 
-            this->frequency_map_ + 256, freq_map_copy);
+            this->frequency_map_ + CharSymbolNum, freq_map_copy);
 #endif 
   //------init queue
-  for (int i = 0 ; i < 256 ; i++) { 
+  for (int i = 0 ; i < CharSymbolNum ; i++) { 
     if (this->frequency_map_[i])
       queue.push(i);
     group[i] = -1;
@@ -58,7 +58,7 @@ get_encoding_length()
   }
 #ifdef DEBUG
   std::copy(freq_map_copy, 
-            freq_map_copy + 256, this->frequency_map_);
+            freq_map_copy + CharSymbolNum, this->frequency_map_);
 #endif 
 }
 

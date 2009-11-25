@@ -122,8 +122,9 @@ private:
   void do_init(char_tag) { 
     //for char we use array for frequence map, and vector<string> 
     //for encode map,we have to init them.
-    for (int i = 0; i < 256; i++)
+    for (int i = 0; i < (CharSymbolNum - 1); i++)
       frequency_map_[i] = 0;
+    frequency_map_[CharSymbolNum - 1] = 1;  //for the end of encoing map always be 1
   }
   
   //for key type is unsigned char

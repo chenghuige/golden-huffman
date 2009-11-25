@@ -1,12 +1,12 @@
+Notice:Make sure you have cmake installed for building!
 
 I.How to build?
 1. mkdir build
 2. cd build
 3. cmake ..
 4. make
-will generate ./utet which is a test of the compressor and decompressor
+will generate [topdir]/build/bin/utet which is a test of the compressor and decompressor
 the source code of the test is /unit_ests/test.cc
-
 
 II.File structure
 1./include
