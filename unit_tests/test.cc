@@ -43,8 +43,8 @@ string infile_name2, outfile_name2;
  * compressor  and decompressor  is normal huffman char based method
  * compressor2 and decompressor2 is canonical huffman char based method
  * */
-Compressor<> compressor;
-Compressor<CanonicalHuffEncoder> compressor2;
+Compressor<NormalHuffEncoder<> > compressor;
+Compressor<CanonicalHuffEncoder<> > compressor2;
 
 void compressor_func_test() 
 {
@@ -95,7 +95,7 @@ void normal_huff_char_decompress()
 {
   infile_name2 = outfile_name;
   outfile_name2.clear();
-  Decompressor<> decompressor(infile_name2, outfile_name2);
+  Decompressor<NormalHuffDecoder<> > decompressor(infile_name2, outfile_name2);
   decompressor.decompress();
 }
 
@@ -110,7 +110,7 @@ void canonical_huff_char_decompress()
 {
   infile_name2 = outfile_name;
   outfile_name2.clear();
-  Decompressor<CanonicalHuffDecoder> decompressor2(infile_name2, outfile_name2);
+  Decompressor<CanonicalHuffDecoder<> > decompressor2(infile_name2, outfile_name2);
   decompressor2.decompress();
 }
 
@@ -124,7 +124,7 @@ void normal_huff_char_compress(const string &infile_name)
 void normal_huff_char_decompress(const string &infile_name2) 
 {
   outfile_name2.clear();
-  Decompressor<> decompressor(infile_name2, outfile_name2);
+  Decompressor<NormalHuffDecoder<> > decompressor(infile_name2, outfile_name2);
   decompressor.decompress();
 }
 
@@ -135,24 +135,25 @@ void canonical_huff_char_compress(const string &infile_name)
   compressor2.compress();
 }
 
-void fast_canonical_huff_char_decompress(const string &infile_name2)
-{
-  outfile_name2.clear();
-  Decompressor<FastCanonicalHuffDecoder> decompressor2(infile_name2, outfile_name2);
-  decompressor2.decompress();
-}
-
 void canonical_huff_char_decompress(const string &infile_name2)
 {
   outfile_name2.clear();
-  Decompressor<CanonicalHuffDecoder> decompressor2(infile_name2, outfile_name2);
+  Decompressor<CanonicalHuffDecoder<> > decompressor2(infile_name2, outfile_name2);
   decompressor2.decompress();
 }
+
+void fast_canonical_huff_char_decompress(const string &infile_name2)
+{
+  outfile_name2.clear();
+  Decompressor<FastCanonicalHuffDecoder<> > decompressor2(infile_name2, outfile_name2);
+  decompressor2.decompress();
+}
+
 
 void table_canonical_huff_char_decompress(const string &infile_name2)
 {
   outfile_name2.clear();
-  Decompressor<TableCanonicalHuffDecoder> decompressor2(infile_name2, outfile_name2);
+  Decompressor<TableCanonicalHuffDecoder<> > decompressor2(infile_name2, outfile_name2);
   decompressor2.decompress();
 }
 

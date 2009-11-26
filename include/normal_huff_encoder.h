@@ -53,13 +53,16 @@ namespace glzip {
  */
 //TODO may be can use composite instead of deriving
 //NormalHuffEncoder using Encoder.
-template<typename _KeyType>
+template<typename _KeyType = unsigned char>
 class NormalHuffEncoder : public Encoder<_KeyType> {
 public:
   typedef typename TypeTraits<_KeyType>::FrequencyHashMap        FrequencyHashMap;
   typedef typename TypeTraits<_KeyType>::EncodeHashMap           EncodeHashMap;
   typedef typename TypeTraits<_KeyType>::type_catergory          type_catergory;
   typedef EncodeHuffTree<_KeyType>   Tree;
+  typedef Encoder<_KeyType>          Base;
+  using Base::infile_;
+  using Base::outfile_;
 public:
   //----the specific encoder like HuffEncoder or CanonicalEncoder will decide the outfile name and open it
   //TODO right now infile_name not const!
@@ -97,7 +100,8 @@ public:
     if (phuff_tree_)
       delete phuff_tree_;
   }
-
+  
+ 
   ///得到所有符号/单词的编码 
   void gen_encode() {
 #ifdef DEBUG
@@ -146,6 +150,36 @@ public:
     }
   }
 
+  void encode_file()
+  {
+    long pos = ftell(outfile_);      //The pos right after the head info of compressing
+    Buffer writer(outfile_);
+    writer.write_byte((unsigned char)(0));      //at last will store leftbit here
+    writer.write_byte((unsigned char)(0));      //at last will store the last byte if leftbit > 0
+  
+    fseek (infile_ , 0 , SEEK_SET ); //Cur of infile_ to the start,we must read it again
+    Buffer reader(infile_); 
+  
+    //TODO one poosible way is to let the while be virtual so 
+    //we will not call so many virtual functions in while
+    //different encoder will use differnt method
+    encode_each_byte(reader, writer);
+ 
+    writer.flush_buf();   //important! need to write all the things int the buf out even buf is not full
+    //---deal with the last byte
+    int left_bits = writer.left_bits();
+    //std::cout << "left bits when encoding is " << left_bits << "\n";
+    if (left_bits) {
+      //fseek(outfile_, 0, pos);   //fixed bug here,went back to the saved pos;  why this is wrong????TODO
+      fseek(outfile_, pos, SEEK_SET);
+      writer.write_byte((unsigned char)(left_bits));
+      for (int i = 0; i < left_bits; i++)
+        writer.write_bit(0);    //fill 0 to finish the byte 
+      writer.flush_buf();       //write buf to file
+    }
+    fflush(outfile_);    //force to the disk
+  }
+
 private:
   void init_nhuff() {
     do_init_nhuff(type_catergory());
@@ -156,7 +190,7 @@ private:
     encode_map_.resize(256);  
   }
 
-  virtual void encode_each_byte(Buffer &reader, Buffer &writer) { 
+  void encode_each_byte(Buffer &reader, Buffer &writer) { 
     unsigned char key;
     while(reader.read_byte(key)) 
       writer.write_string(this->encode_map_[key]);
@@ -241,7 +275,7 @@ private:
 /* *
  * Class NormalHuffDeocder  --Decoder using the normal huffman method
  */
-template<typename _KeyType>
+template<typename _KeyType = unsigned char>
 class NormalHuffDecoder : public Decoder<_KeyType> {
 public:
   typedef DecodeHuffTree<_KeyType>   Tree;
