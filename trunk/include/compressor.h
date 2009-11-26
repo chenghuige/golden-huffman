@@ -39,17 +39,8 @@
 
 namespace glzip{
 
-//forward declaration of NormalHuffEncoder
-template<typename _KeyType>
-class NormalHuffEncoder; 
-template<typename _KeyType>
-class NormalHuffDecoder; 
-
 //---------------------------------------------------------Compressor
-template<
-  template<typename> class _Encoder = NormalHuffEncoder,
-  typename _KeyType = unsigned char
-  >
+template<typename _Encoder>
 class Compressor {
 public:
   Compressor(const std::string& infile_name, std::string& outfile_name) 
@@ -74,23 +65,19 @@ public:
     //notice some encoder might write encode info just at the last step of gen_encode so this will
     //not use a sperate process, choices 1. pass paremeter 2. as class varaibe sharing
     //TODO which is better?
-
     /*write header*/
     encoder_.write_encode_info();    //write outfile header(encoding info) ---done by specific encoder
     /*encode and write whole file */
-    encoder_.encode_file();          //read infile,translate to outfile,   ---done by Encoder
-  }
-
+    encoder_.encode_file();          //read infile,translate to outfile,   ---done by specific encoder now 
+  }                                  //may be normal huff and canoncial should share but sitll I will not 
+                                     //support normal huff any more just use old version
 private:
-  _Encoder<_KeyType> encoder_;  //using enocder_ right now can be HuffEncoder or CanonicalEncoder 
+  _Encoder encoder_;  //using enocder_ right now can be HuffEncoder or CanonicalEncoder 
 };
 
 //---------------------------------------------------------Decompressor
 //TODO using  template<typename> class _Decoder = NormalHuffDecoder will limit the _Decoder type
-template<
-  template<typename> class _Decoder = NormalHuffDecoder,
-  typename _KeyType = unsigned char
-  >
+template<typename _Decoder>
 class Decompressor {
 public:
   Decompressor(const std::string& infile_name, std::string& outfile_name) 
@@ -103,7 +90,7 @@ public:
     decoder_.decode_file();
   }
 private:
-  _Decoder<_KeyType> decoder_;   
+  _Decoder decoder_;   
 };
 
 //------------------------------------------------------------------------------------------

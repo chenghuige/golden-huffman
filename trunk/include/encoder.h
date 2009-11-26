@@ -45,6 +45,8 @@ namespace glzip {
  * The derived encoder also provide the final outfile name.
  *
  */
+const int buf_size = 64 * 1024;
+
 template<typename _KeyType>
 class Encoder {
 public:
@@ -97,22 +99,12 @@ public:
 
   virtual void write_encode_info() = 0;
   
-  ///对整个文件编码
-  void encode_file() {
-#ifdef DEBUG
-    std::cout << "Encoder, !encoding the whole file, write result to oufile" 
-              << std::endl;
-#endif
-    do_encode_file(type_catergory());
-  }
-
   //TODO add one print encode interface for Encoder
   //may be for the Compressor?
   //FIXME right now print encode all define sperately
   //in spcific encoder
 
 private:
-  virtual void encode_each_byte(Buffer &reader, Buffer &writer) = 0;
   
   //!! do not name init() and init(char_tag)
   void init() {
@@ -128,16 +120,25 @@ private:
   }
   
   //for key type is unsigned char
-  //TODO if using iterator than for char and string we can use the same func
+  //Notice using the Buffer I have wrote as I used here before or use
+  //std::streambuf or istreambuf_iterator will be of similar speed, and
+  //code more elegant especiall if using iterator, more adaptable.
+  //But here still use fread to get the best speed especailly for large file.
   void do_caculate_frequency(char_tag) {
-    Buffer reader(infile_);  
-    unsigned char key;
-    while(reader.read_byte(key)) 
-      frequency_map_[key] += 1;
-    //std::cout << "Finished caculating frequency\n"; 
+    //below is the same as
+    //while(reader.read_byte(ke)) 
+    //   frequency_map_[key] += 1
+    unsigned char buf[buf_size];
+    int read_num;
+    while(1) {
+      read_num = fread(buf, 1, buf_size, infile_);  
+      for (int i = 0; i < read_num; i++) {
+        frequency_map_[buf[i]] += 1;
+      }
+      if (read_num < buf_size) //file end meet!
+        break;
+    }
   }
-
-  void do_encode_file(char_tag);
 
   //---------------------------------------for word(string) based below
   void init_help(string_tag){}
@@ -146,9 +147,6 @@ private:
   void do_caculate_frequency(string_tag) {
   }
 
-  void do_encode_file(string_tag) {
-
-  }
 protected:
   FILE*                 infile_;    
   FILE*                 outfile_;

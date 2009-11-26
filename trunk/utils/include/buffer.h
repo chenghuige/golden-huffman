@@ -4,6 +4,7 @@
  *          \file   buffer.h
  *
  *        \author   pku_goldenlock@qq.com
+ *                  ChengHuige
  *
  *          \date   2009-11-18 16:36:29.568105
  *  
@@ -51,6 +52,11 @@ namespace glzip {
 //TODO std::size_t N? learn more about std::size_t
 //buf_capacity_ should not exceed int capacity
 
+typedef unsigned char UChar;
+//forward decalaration
+template<typename _Buffer>
+class BufReaderIter;
+
 #define IntSize sizeof(int)
 template <int buf_capacity_ = 64*1024>
 class FixedFileBuffer {
@@ -58,11 +64,76 @@ public:
   FixedFileBuffer(FILE* file) 
       :file_(file), cur_(0), 
        bit_cur_(0), 
-       num_(0), buf_used_(0) 
+       num_(0), buf_used_(0),
+       end_(0)
   {
     memset(buf_, 0, buf_capacity_ + 8);
     //fill_buf();   //FIXME may be ReaderBuffer and WriterBuffer better TODO 
   }
+
+  FixedFileBuffer() :end_(1) {}
+  //------------------------------------------------------iterator support (only for read_byte only)!
+  //notice if you use iterator do not use read_byte again!
+  
+  //typedef BufReaderIter<FixedFileBuffer<buf_capacity_> > iterator;
+  //template <typename _Buffer>  friend class BufReaderIter;
+
+  //iterator begin() {
+  //  return iterator(this);
+  //}
+
+  //iterator end() {
+  //  return iterator();
+  //}
+
+  //the class it's self is a iterator,just for speed, above is ok but a bit slow
+  //usage:
+  //FixedFileBuffer<buf_capacity_> rader(input_file);
+  //FixedFileBuffer<buf_capacity_>::iterator iter, end;
+  //iter = reader.begin()
+  //end = reader.end()
+  //while(iter != end)
+  //  char ch = *iter++;
+  typedef FixedFileBuffer<buf_capacity_> iterator;
+  iterator begin() {
+    fill_buf();
+    return *this;
+  }
+
+  iterator end() {
+    return iterator();
+  }
+
+  UChar operator*() const {
+    return buf_[cur_];
+  }
+  
+  UChar* operator->() const {
+    return buf_ + cur_;
+  }
+
+  iterator& operator++() {
+    if (cur_ == (buf_used_ - 1) && fill_buf() == 0) 
+      end_ = 1;    
+    else
+      cur_++;
+    return *this;
+  }
+
+  iterator operator++(int) {
+    iterator tmp = *this;
+    ++*this;
+    return tmp;
+  }
+
+  bool operator==(const iterator& other) {
+    return (end_ == 0 && other.end_ == 0)||(this = &other);
+  }
+
+  bool operator!=(const iterator& other) {
+    return end_ != other.end_;
+  }
+  
   //------------------------------------------------------fill and flush buf
   bool is_full() {
     return cur_ == buf_used_;
@@ -80,7 +151,7 @@ public:
   }
 
   //-------------------------------------------------------reading
-  
+
   //if cur == buf_used_ than we read over the buffer
   //than we fill the buf if we fail to read any from file
   //than will return 0 to mark the end
@@ -233,9 +304,61 @@ private:
   int buf_used_; //the actual number of bytes read from file
 
   unsigned char buf_[buf_capacity_ + 8]; //the buffer! make 8 more space unused for safety
+
+  bool end_;  //for self iterator
 };
 
 typedef FixedFileBuffer<> Buffer;
+
+template<typename _Buffer = Buffer>
+class BufReaderIter
+{
+private:
+  UChar    current_;
+  _Buffer* preader_;      //TODO must be *
+public:
+  BufReaderIter() : preader_(NULL) {}
+  BufReaderIter(_Buffer* reader) : preader_(reader) {
+    if (!preader_->fill_buf())  //empty file
+      preader_ = NULL;
+    preader_->read_byte(current_);  //for the first *iter
+  }
+  //TODO UChar& better?  than UChar?
+  //TODO why can not *() const?
+  //错误： 将类型为‘glzip::UChar&’的引用初始化为类型为‘const glzip::UChar’的表达式无效
+  //UChar& operator*() {
+  //  return current_;
+  //}
+
+  UChar operator*() const {
+    return current_;
+  }
+  
+  UChar* operator->() const {
+    return &current_;
+  }
+
+  BufReaderIter& operator++() {
+    if (!preader_->read_byte(current_))
+      preader_ = NULL;
+    return *this;
+  }
+
+  BufReaderIter operator++(int) {
+    BufReaderIter tmp = *this;
+    ++*this;
+    return tmp;
+  }
+
+  bool operator==(const BufReaderIter<_Buffer>& other) {
+    return preader_ = other.preader_;
+  }
+
+  bool operator!=(const BufReaderIter<_Buffer>& other) {
+    return preader_ != other.preader_;
+  }
+
+};
 
 /*
  * BitBuffer
@@ -252,9 +375,10 @@ typedef FixedFileBuffer<> Buffer;
  */
 #define BitBufferSize  8*sizeof(long long)
 #define Shift          BitBufferSize/2
-class BitBuffer {
+template<typename _Buffer = Buffer>
+class BitsBuffer {
 public:
-  BitBuffer(Buffer& reader):reader_(reader) {
+  BitsBuffer(Buffer& reader):reader_(reader) {
     fill_buf();
   }
 
@@ -302,8 +426,10 @@ public:
 private:
   unsigned int bit_count_;
   unsigned long long buf_;
-  Buffer&  reader_;             //TODO better arrage here
+  _Buffer&  reader_;             //TODO better arrage here
 };
+
+typedef BitsBuffer<> BitBuffer;
 
 //#define BitBufferSize 32
 //class BitBuffer {

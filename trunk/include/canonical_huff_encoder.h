@@ -41,10 +41,9 @@ namespace glzip {
   //try to use iterator! See the performance!
 
 //The version for std::string or char *
-template<typename _KeyType>
-class CanonicalHuffEncoder : public Encoder<_KeyType> {
-
-};
+//template<typename _KeyType>
+//class CanonicalHuffEncoder : public Encoder<_KeyType> {
+//};
 
 
 //The version for unsigned char
@@ -61,13 +60,18 @@ class CanonicalHuffEncoder : public Encoder<_KeyType> {
 //
 //TODO TODO! Right now not consider encoding length > 32 EXPECT_LE(length, 32)
 //now using int not unsiged int so not exceeding 31
-template<>
-class CanonicalHuffEncoder<unsigned char> : public Encoder<unsigned char> {
+template<typename _KeyType = unsigned char>
+class CanonicalHuffEncoder: public Encoder<_KeyType> {
 private:
   //---------------------prepare for the priority queue
-  typedef unsigned char KeyType;
-  typedef unsigned char _KeyType;
-  typedef TypeTraits<KeyType>::FrequencyHashMap        FrequencyHashMap; 
+  typedef typename TypeTraits<_KeyType>::FrequencyHashMap        FrequencyHashMap;
+  typedef typename TypeTraits<_KeyType>::EncodeHashMap           EncodeHashMap;
+  typedef typename TypeTraits<_KeyType>::type_catergory          type_catergory;
+  
+  typedef Encoder<_KeyType>        Base;
+  using Base::infile_;
+  using Base::outfile_;
+  using Base::frequency_map_;
 
   struct HuffNodeIndexGreater:
       public std::binary_function<int, int, bool> {
@@ -299,7 +303,8 @@ public:
   //These will also be helpful when we want to using word based method!
   //FIXME fix the problem if the encoding length exceeds 32!TODO
   //will not compress well? since header is big?
-  void write_encode_info() {
+  void write_encode_info() 
+  {
     //------------------------------------------------OK now can write the header out!
     //we need to write the 
     //start_pos  (max_length) ,  we use start_pos_copy which is correct unmodified
@@ -338,11 +343,10 @@ public:
   {
     //Cur of infile_ to the start,we must read it again
     fseek (this->infile_ , 0 , SEEK_SET );  
-    Buffer reader(this->infile_); 
 
     Buffer writer(this->outfile_);
     
-    encode_each_byte(reader, writer);
+    encode_each_byte(writer);
     //write end of encode mark
     writer.write_bits(codeword_[CharSymbolNum - 1], length_[CharSymbolNum - 1]);
     //important
@@ -359,16 +363,73 @@ public:
 private:
   
   //this is used during Encoder::encode_file()
-  virtual void encode_each_byte(Buffer &reader, Buffer &writer) 
+  void encode_each_byte(Buffer &writer) 
   {
     unsigned char key;
-    while(reader.read_byte(key)) {
-      writer.write_bits(codeword_[key], length_[key]);
+    unsigned char buf[buf_size];
+    int read_num;
+    while(1) {
+      read_num = fread(buf, 1, buf_size, infile_);  
+      for (int i = 0; i < read_num; i++) {
+        key = buf[i];
+        writer.write_bits(codeword_[key], length_[key]);
+      }
+      if (read_num < buf_size) //file end meet
+        break;
     }
   }
 
   /**cacluate each symbol's enoding length,will be the same as normal huffman*/
-  void get_encoding_length();
+  void get_encoding_length()
+  {
+    int group[CharSymbolNum];  
+    HuffNodeIndexGreater index_cmp(this->frequency_map_);
+    HuffPRQUE queue(index_cmp);
+  #ifdef DEBUG
+    FrequencyHashMap freq_map_copy;
+    std::copy(this->frequency_map_, 
+              this->frequency_map_ + CharSymbolNum, freq_map_copy);
+  #endif 
+    //------init queue
+    for (int i = 0 ; i < CharSymbolNum ; i++) { 
+      if (this->frequency_map_[i])
+        queue.push(i);
+      group[i] = -1;
+      length_[i] = 0;
+    }
+    //------imitate creating huff tree using array
+    int top_index1,top_index2, index;
+    int times = queue.size() - 1;
+    for (int i = 0 ; i < times ; i++) {
+      top_index1 = queue.top();
+      queue.pop();
+      top_index2 = queue.top();
+      queue.pop();
+  
+      index = top_index2;
+      //the node group of top_index1 all add 1
+      while(group[index] != -1) {  
+        length_[index] += 1;
+        index = group[index];
+      }
+      //link group of top_index1 to the group top_index2
+      group[index] = top_index1;
+      //the node group of top_index2 all add 1
+      while(index != -1) {
+        length_[index] += 1;
+        index = group[index];
+      }      
+      //now chage weight of frequency_map_[top_index2] representing the
+      //new internal node of node top_index1 + node top_index2
+      this->frequency_map_[top_index2] += this->frequency_map_[top_index1];
+  
+      queue.push(top_index2);
+    }
+  #ifdef DEBUG
+    std::copy(freq_map_copy, 
+              freq_map_copy + CharSymbolNum, this->frequency_map_);
+  #endif 
+  }
 
 private: 
   unsigned int length_[CharSymbolNum];  //store encode length lenghth_ do not support .size() :(
@@ -394,7 +455,7 @@ private:
 /**
  * This is a CanonicalHuffDecoder using the simplest decoding method
  */
-template<typename _KeyType>
+template<typename _KeyType = unsigned char>
 class CanonicalHuffDecoder : public Decoder<_KeyType> {
 public:
   CanonicalHuffDecoder(const std::string& infile_name, std::string& outfile_name)
@@ -476,75 +537,6 @@ public:
     }
   }
 
-  //void decode_file() {
-  //  unsigned char left_bit, last_byte;
-  //  reader_.read_byte(left_bit);
-  //  reader_.read_byte(last_byte);
-  //  //--------------------------------------decode each byte
-  //  unsigned char c;
-  //  
-  //  int v = 0;        //like a global status for value right now
-  //  int len = 0;      //like a global status for length
-  //  while(reader_.read_byte(c)) 
-  //    decode_byte(c, v, len);
-  //  //--------------------------------------deal with the last byte
-  //  if (left_bit)
-  //    decode_byte(last_byte, v, len, (8 - left_bit));
-  //  writer_.flush_buf();
-  //  fflush(this->outfile_);
-  //}
-
-  //FIXME read_bit slow and has problem at the first byte or 
-  //void decode_file() {
-  //  unsigned char left_bit, last_byte;
-  //  reader_.read_byte(left_bit);
-  //  reader_.read_byte(last_byte);
-  //  //--------------------------------------decode each byte
-  //  int bit;
-  //  int v = 0;        //like a global status for value right now
-  //  int len = 0;      //like a global status for length
-  //  while(reader_.read_bit(bit)) {
-  //    v = (v << 1) | bit;  //v = v * 2 + bit
-  //    len++;
-  //    if (v >= first_code_[len]) {
-  //      writer_.write_byte(symbol_[start_pos_[len] + v - first_code_[len]]);
-  //      v = 0;
-  //      len = 0;
-  //    }
-  //  }
-  //  //--------------------------------------deal with the last byte
-  //  if (left_bit) {
-  //    for (int i = 7; i >= left_bit; i--) {
-  //      v = (v << 1) | bit;
-  //      len++;
-  //      if (v >= first_code_[len]) {
-  //        writer_.write_byte(symbol_[start_pos_[len] + v - first_code_[len]]);
-  //        v = 0;
-  //        len = 0;
-  //      }
-  //    }  
-  //  }
-  //  writer_.flush_buf();
-  //  fflush(this->outfile_);
-  //}
-
-
-private:
-
-  //void decode_byte(unsigned char c, int &v, int &len, int bit_num = 8){
-  //  std::bitset<8> bits(c);
-  //  int end = 7 - bit_num;
-  //  for (int i = 7; i > end; i--) {
-  //    //v = v * 2 + bits[i];  //TODO * and << which is quicker?
-  //    v = (v << 1) | bits[i];
-  //    len++;                //length add 1
-  //    if (v >= first_code_[len]) {  //OK in length len we translate one symbol
-  //      writer_.write_byte(symbol_[start_pos_[len] + v - first_code_[len]]);
-  //      v = 0;
-  //      len = 0;        //fished one translation set to 0
-  //    }
-  //  }
-  //}
 
 protected:
   unsigned int symbol_[CharSymbolNum];         //symbol less than 256
@@ -563,7 +555,7 @@ namespace canonical_help {
   //search 3 will return the same pos
   //linear search
 #ifdef DEBUG
- unsigned long long  search_times = 0;
+unsigned long long  search_times = 0;
 #endif
   int cfind(unsigned int vec[], unsigned int start, unsigned int val) {
     while(val < vec[start]) {
@@ -579,7 +571,7 @@ namespace canonical_help {
   //}
 } 
 
-template<typename _KeyType>
+template<typename _KeyType = unsigned char>
 class FastCanonicalHuffDecoder : public CanonicalHuffDecoder<_KeyType> {
 public:
   FastCanonicalHuffDecoder(const std::string& infile_name, std::string& outfile_name)
@@ -641,8 +633,7 @@ public:
 };
 
 //template<typename _KeyType, int TableLength = 8>  //FIXME using this will conlict with Compressor! :( which require only _KeyType
-#define  TableLength  8   //use 8bit table
-template<typename _KeyType>
+template<typename _KeyType = unsigned char, int TableLength = 8>
 class TableCanonicalHuffDecoder : public CanonicalHuffDecoder<_KeyType> {
 public:
   TableCanonicalHuffDecoder(const std::string& infile_name, std::string& outfile_name)
