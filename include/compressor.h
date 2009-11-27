@@ -4,6 +4,7 @@
  *          \file   compressor.h
  *
  *        \author   pku_goldenlock@qq.com
+ *                  ChengHuige
  *
  *          \date   2009-11-18 16:12:13.356033
  *  

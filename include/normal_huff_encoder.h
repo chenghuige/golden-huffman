@@ -4,6 +4,7 @@
  *          \file   normal_huff_encoder.h 
  *
  *        \author   pku_goldenlock@qq.com
+ *                  ChengHuige
  *
  *          \date   2009-11-18 16:12:13.356033
  *  
@@ -12,6 +13,10 @@
  *                  Dervie from HuffEndoder and HuffDecoder
  *
  *                  They will use HuffTree to do the coding and decoding.
+ *
+ *                  Notice normal_huff_encoder is just for experiment puporse
+ *                  it will only support char based method!
+ *                  Since work now it will not be supported and modified any more!
  *  ==============================================================================
  */
 
