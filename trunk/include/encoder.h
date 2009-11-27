@@ -4,6 +4,7 @@
  *          \file   encoder.h
  *
  *        \author   pku_goldenlock@qq.com
+ *                  ChengHuige
  *
  *          \date   2009-11-18 16:12:13.356033
  *  
@@ -20,6 +21,11 @@
 #include <string>
 #include <iostream>   //for debug
 #include <fstream>    //for debug output to file
+#include <typeinfo>   //type id
+#include <functional>
+#include <numeric>
+#include <iomanip>   //for setw format output
+
 
 #include "buffer.h"      //fast file read write with buffer
 #include "type_traits.h" //char_tag  TypeTraits
