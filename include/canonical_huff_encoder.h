@@ -48,7 +48,6 @@ class CanonicalHuffEncoder: public Encoder<_KeyType> {
 private:
   //---------------------prepare for the priority queue
   typedef typename TypeTraits<_KeyType>::FrequencyHashMap        FrequencyHashMap;
-  typedef typename TypeTraits<_KeyType>::EncodeHashMap           EncodeHashMap;
   typedef typename TypeTraits<_KeyType>::type_catergory          type_catergory;
   
   typedef Encoder<_KeyType>        Base;
@@ -72,7 +71,7 @@ private:
 
 public:  
   CanonicalHuffEncoder(const std::string& infile_name, std::string& outfile_name) 
-      : Encoder<unsigned char>(infile_name) {
+      : Encoder<_KeyType>(infile_name) {
     set_out_file(infile_name, outfile_name);
   }
 
@@ -108,7 +107,7 @@ private:
   unsigned int length_[CharSymbolNum];    
   unsigned int codeword_[CharSymbolNum];   
 
-  int max_len_; //max elem of length_[]
+  int max_len_; //max encoding length
   int min_len_; //min encoding length
 
   /** like 0000 for max_encoding_length the min encoing value of each encoding length */

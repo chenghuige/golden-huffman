@@ -53,25 +53,48 @@ class TypeTraits<unsigned char> {
 public:
   typedef char_tag type_catergory;
   typedef long long FrequencyHashMap[CharSymbolNum];        //use 256 + 1,1 is the end of encoding mark
+  typedef FrequencyHashMap  HashMap;
   typedef std::vector<std::string>    EncodeHashMap;
 };
 //---special TypeTraits for std::string, word based encoding
 //--------------------std::string and char * are two possible implementation choice for word based encoding
+struct SymbolInfo {
+  //we will reuse the memory of frequency to length!
+  union{
+    unsigned int frequency;       //FIXME do not exceed 2^32 right now, may be enough
+    unsigned int length;
+  }fl;
+  int codeword;                 //encoding ie, 0110 and length = 4 will store here 6
+  //for easy use in Tokenizer
+  void operator+=(int i) {
+    fl.frequency += i;
+  }
+
+  void operator=(int i) {
+    fl.frequency = i;
+  }
+};
+
 template<>
 class TypeTraits<std::string> {
 public:
   typedef string_tag type_catergory;
-  typedef std::tr1::unordered_map<std::string, size_t>        FrequencyHashMap;
-  typedef std::tr1::unordered_map<std::string, std::string>   EncodeHashMap;
+  
+  //for word based huffman FrequencyHashMap also store other info besides frequency
+  //0 for word, 1 for non word
+  typedef std::tr1::unordered_map<std::string, SymbolInfo>  HashMap;
+  typedef std::tr1::unordered_map<std::string, SymbolInfo>  FrequencyHashMap[2];
 };
 
-template<>
-class TypeTraits<char *> {
-public:
-  typedef string_tag type_catergory;
-  typedef std::tr1::unordered_map<char *, size_t>   FrequencyHashMap;
-  typedef std::tr1::unordered_map<char *, char *>   EncodeHashMap;
-};
+
+
+//template<>
+//class TypeTraits<char *> {
+//public:
+//  typedef string_tag type_catergory;
+//  typedef std::tr1::unordered_map<char *, size_t>   FrequencyHashMap;
+//  typedef std::tr1::unordered_map<char *, char *>   EncodeHashMap;
+//};
 
 }   //end of namespace glzip
 //-----------------------------------------------------------------------------
