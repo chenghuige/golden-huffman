@@ -12,7 +12,6 @@
  *                  对比初始的文件,和经过压缩再解压缩后得到的文件是否完全一致检测.
  *                  同时google test默认会显示每个test的运行时间,部分性能检验
  *
- *                  当前只是测试了一个big.log 24M 的文件 
  *  ==============================================================================
  */
 #include <stdio.h>
@@ -158,85 +157,6 @@ void table_canonical_huff_char_decompress(const string &infile_name2)
 }
 
 
-//class Foo {
-//public:
-//  ~Foo() {
-//    cout << "destruct" << endl;
-//  }
-//  int x;
-//};
-//
-//TEST(vector, perf) 
-//{
-//  vector<Foo> vec;
-//  vec.resize(4);
-//  for (long long i = 0; i < 32*1024*24; i++)
-//    for (int j = 0; j < 4; j++)
-//      vec[j].x = j + 1;
-//}
-//
-//TEST(array, perf)
-//{
-//  Foo array[4];
-//  for (long long i = 0; i < 32*1024*24; i++)
-//    for (int j = 0; j < 4; j++)
-//      array[j].x = j + 1;
-//}
-//
-//TEST(new_array, perf)
-//{
-//  Foo *array;
-//  array = new Foo[4];
-//  for (long long i = 0; i < 32*1024*24; i++)
-//    for (int j = 0; j < 4; j++)
-//      array[j].x = j + 1;
-//  //delete [] array;
-//}
-//
-//
-//TEST(boost_array, perf)
-//{
-//  boost::array<Foo, 4> boost_array;
-//  for (long long i = 0; i < 32*1024*24; i++)
-//    for (int j = 0; j < 4; j++)
-//      boost_array[j].x = j + 1;
-//}
-
-
-//TEST(vector, perf) 
-//{
-//  vector<int> vec(256);
-//  //vec.resize(256);
-//  for (long long i = 0; i < 32*1024*24; i++)
-//    for (int j = 0; j < 256; j++)
-//      vec[j] = j + 1;
-//}
-//
-//TEST(array, perf)
-//{
-//  int array[256];
-//  for (long long i = 0; i < 32*1024*24; i++)
-//    for (int j = 0; j < 256; j++)
-//      array[j] = j + 1;
-//}
-//
-//TEST(new_array, perf)
-//{
-//  int *array;
-//  array = new int[256];
-//  for (long long i = 0; i < 32*1024*24; i++)
-//    for (int j = 0; j < 256; j++)
-//      array[j] = j + 1;
-//}
-//
-//
-//TEST(boost_array, perf)
-//{
-//  boost::array<int, 256> boost_array;
-//  for (long long i = 0; i < 32*1024*24; i++)
-//    for (int j = 0; j < 256; j++)
-//      boost_array[j] = j + 1;
-//}
 
 
 

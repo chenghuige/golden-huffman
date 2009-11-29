@@ -62,6 +62,7 @@ public:
   void compress() {
     encoder_.caculate_frequency();   //read file and calc           --done by Encoder
     encoder_.gen_encode();           //gen encode based on frequnce --done by specific encoder
+    return;
     //-------------------------------write the compressed file
     //notice some encoder might write encode info just at the last step of gen_encode so this will
     //not use a sperate process, choices 1. pass paremeter 2. as class varaibe sharing

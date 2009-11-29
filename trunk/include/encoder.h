@@ -29,6 +29,7 @@
 
 #include "buffer.h"      //fast file read write with buffer
 #include "type_traits.h" //char_tag  TypeTraits
+#include "tokenizer.h"
 
 namespace glzip {
 
@@ -58,6 +59,8 @@ class Encoder {
 public:
   typedef typename TypeTraits<_KeyType>::FrequencyHashMap        FrequencyHashMap;
   typedef typename TypeTraits<_KeyType>::type_catergory          type_catergory;
+  typedef typename TypeTraits<_KeyType>::HashMap                 HashMap;
+
 public:
   //As a base Encoder only deal with infile_name
   //outfile_name is deal with specific encoder
@@ -147,10 +150,36 @@ private:
   }
 
   //---------------------------------------for word(string) based below
-  void init_help(string_tag){}
+  void do_init(string_tag) {}
 
+  void do_caculate_frequency(string_tag) 
+  {
+#ifdef DEBUG
+    std::cout << "word huffman calc frequency\n";
+#endif
+    std::ifstream ifs(infile_name_.c_str());
+    typedef std::istreambuf_iterator<char>  Iter;
+    Iter iter(ifs);
+    Iter end;
+    
+    typedef Tokenizer<HashMap, Iter> Tokenizer;
+    Tokenizer tokenizer(frequency_map_[0], frequency_map_[1], iter, end);
 
-  void do_caculate_frequency(string_tag) {
+    tokenizer.split();
+    
+    //for word add eof to mark the end
+    //Note we use EOF -1 to mark than end, and use "" to mark if
+    //we split 88889999 to 8888+""+9999 this feature is TODO
+    std::string eof;
+    eof.push_back(-1);
+    frequency_map_[0][eof] = 1;
+    //for non word also add eof mark
+    frequency_map_[1][eof] = 1;
+
+#ifdef DEBUG
+    std::cout << "word num is " << frequency_map_[0].size() << std::endl;
+    std::cout << "non word num is " << frequency_map_[1].size() << std::endl;
+#endif
   }
 
 protected:
