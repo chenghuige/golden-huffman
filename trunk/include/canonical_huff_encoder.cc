@@ -35,7 +35,7 @@ set_file(const std::string& infile_name, std::string& outfile_name)
 template<typename _KeyType>
 void CanonicalHuffEncoder<_KeyType>::gen_encode()
 {
-  //set up length_
+  //set up length_,and get max_len_ set
   get_encoding_length();
   //gen encode from length_ an write header at last step
   do_gen_encode(length_);
@@ -71,12 +71,6 @@ template<typename Container>
 void CanonicalHuffEncoder<_KeyType>::
 do_gen_encode(Container &l)
 {
-  
-  //note length array input from first --- last , 0--n-1
-  //for array of size max_length + 1 ,will index from 1
-  //caculate max_len_
-  max_len_ = *std::max_element(&l[0], &l[CharSymbolNum]);
-
   int array_len = max_len_ + 1;  //+1!!
   unsigned int num[array_len];  //0 is not used,num[1] hold in length array the length 1 num 
   unsigned int start_pos_copy[array_len];
@@ -342,6 +336,12 @@ void CanonicalHuffEncoder<_KeyType>::get_encoding_length()
   std::copy(freq_map_copy, 
             freq_map_copy + CharSymbolNum, this->frequency_map_);
 #endif 
+  //set max len
+  //note length array input from first --- last , 0--n-1
+  //for array of size max_length + 1 ,will index from 1
+  //caculate max_len_
+  max_len_ = *std::max_element(&length_[0], &length_[CharSymbolNum]);
+
 }
 
 //-------------------------------------------------------------CanonicalHuffDecoder
