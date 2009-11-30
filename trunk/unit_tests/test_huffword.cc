@@ -46,7 +46,7 @@ string infile_name2, outfile_name2;
  * */
 Compressor<CanonicalHuffEncoder<std::string> > compressor;
 
-void compressor_func_test() 
+void func_test() 
 {
   int num1, num2;
   num1 = num2 = 0;
@@ -68,7 +68,7 @@ void compressor_func_test()
     reader2.read_byte(key2);
     //确保初始文件,和压缩然后再解压缩后的文件内容一致
     //对应的每一个byte都一致 
-    EXPECT_EQ(key1, key2) << key1 << " " << key2 << " " 
+    ASSERT_EQ(key1, key2) << key1 << " " << key2 << " " 
                           << "differ index is " << num1 ;   
     num1++;
     num2++;
@@ -76,7 +76,7 @@ void compressor_func_test()
   while(reader2.read_byte(key2))
     num2++;
   //确保初始文件和最终文件的大小一样
-  EXPECT_EQ(num1, num2) << "file size differ " 
+  ASSERT_EQ(num1, num2) << "file size differ " 
                         << "original " << num1 
                         << "final " << num2;     
   fclose(p_orignal);
@@ -91,9 +91,28 @@ void test_compress()
   compressor.compress();
 }
 
+void test_decompress()
+{
+  infile_name2 = outfile_name;
+  outfile_name2.clear();
+  Decompressor<CanonicalHuffDecoder<std::string> > decompressor(infile_name2, outfile_name2);
+  decompressor.decompress();
+}
+
+
 TEST(compress, perf)
 {
   test_compress();
+}
+
+TEST(decompress, perf)
+{
+  test_decompress();
+}
+
+TEST(result, func)
+{
+  func_test(); 
 }
 
 

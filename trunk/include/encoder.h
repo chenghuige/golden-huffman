@@ -151,6 +151,19 @@ private:
 
   //---------------------------------------for word(string) based below
   void do_init(string_tag) {}
+  
+  template <typename _HashMap,typename _Token = std::string>
+  struct CalcFrequency: public std::unary_function<_Token, void> {
+    explicit CalcFrequency(_HashMap& frequency_map)
+      :f_map_(frequency_map) {}
+    
+    void operator() (_Token& token) {
+      f_map_[token] += 1;
+    }
+  
+  private:
+    _HashMap& f_map_;  
+  };
 
   void do_caculate_frequency(string_tag) 
   {
@@ -162,10 +175,17 @@ private:
     Iter iter(ifs);
     Iter end;
     
-    typedef Tokenizer<HashMap, Iter> Tokenizer;
-    Tokenizer tokenizer(frequency_map_[0], frequency_map_[1], iter, end);
+    typedef CalcFrequency<HashMap> Func;
+    typedef Tokenizer<Iter,Func > Tokenizer;
+    Func word_func(frequency_map_[0]);
+    Func non_word_func(frequency_map_[1]);
+    
+    Tokenizer tokenizer(iter, end, word_func, non_word_func);
 
     tokenizer.split();
+
+    //wether start from a word or not
+    word_first_ = tokenizer.is_word_first();
     
     //for word add eof to mark the end
     //Note we use EOF -1 to mark than end, and use "" to mark if
@@ -188,6 +208,8 @@ protected:
 
   FrequencyHashMap      frequency_map_;      //all encoders will use the same frequcy_map_
 
+  bool                  word_first_;        //for huff word only,need to know when calc fre,so must here:(
+
   std::string           infile_name_;        //for debug gen_enocde print log 
 
 };
@@ -208,9 +230,9 @@ public:
       outfile_name = infile_name + ".de";
     outfile_ = fopen(outfile_name.c_str(), "wb");
   }
-  ~Decoder() {
+  virtual ~Decoder() {
     //std::cout << "destruct decoder\n";
-    fclose(infile_);
+    fclose(infile_);  //FIXME double free for huff word decoder?
     fclose(outfile_);
   }
   

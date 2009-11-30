@@ -8,6 +8,8 @@ set (test_tokenizer_srcs test_tokenizer.cc)
 
 set (test_huffword_srcs test_huffword.cc)
 add_executable(test_huffword ${test_huffword_srcs})
+target_link_libraries(test_huffword libboost_filesystem.so libboost_serialization.so)
+
 
 
 

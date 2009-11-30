@@ -294,6 +294,12 @@ public:
     }
   }
 
+  //for huff word
+  void write_symbol_string(const std::string& s) {
+    for (unsigned int i = 0; i < s.size(); i++) 
+      write_byte(s[i]);
+  }
+
 private:
   FILE* file_;   //the file we process read or wirte
   int cur_;      //for byte handling
