@@ -12,7 +12,11 @@
  *                  for segmenting word and non word.
  *                  2. I will try to make it more general
  *                  ie iterator,can work with boost::tokenizer
- *                  can work with Chinese character
+ *                  and can work with Chinese character TODO
+ *
+ *                  TODO 字符串的操作还可以优化吧，速度瓶颈在哪，
+ *                  string是如何实现的,c++的多线程，例如4.4.2
+ *                  中多线程的sort,boost asio thread, ACE
  *
  *  ==============================================================================
  */
@@ -61,12 +65,15 @@ bool ishypen(unsigned char c) {
  * store non word to the user offered ncontainer_
  * container are of type HashMap
  *
+ * For user input
  * Iterator first_ and last_ will mark the input range
+ * WordFunc and NonWordFun be the functions type the user want
+ * to deal with the splited word and nonword
  */ 
 template<
-   typename HashMap = std::tr1::unordered_map<std::string, unsigned int>,
-   typename Iterator = std::string::const_iterator,
-   typename Type = std::string
+   typename Iterator,                                   //iterator type
+   typename WordFunc, typename NonWordFunc = WordFunc,  //func type
+   typename Type = std::string                          //token type
 >
 class Tokenizer {
 public:
@@ -75,45 +82,37 @@ public:
   //typedef std::map<std::string, unsigned int>   HashMap;
   //typedef std::hash_map<std::string, long long, hash_string> HashMap;
 
-  Tokenizer(HashMap& wcontainer, HashMap& ncontainer, Iterator first, Iterator last)
-     : first_(first), last_(last), word_first_(false),
-       wcontainer_(wcontainer), ncontainer_(ncontainer){}
+  Tokenizer(Iterator first, Iterator last, 
+            const WordFunc& wfunc = WordFunc(), 
+            const NonWordFunc& nfunc = NonWordFunc())
+     : first_(first), last_(last),
+       deal_word(wfunc), deal_nonword(nfunc),
+       word_first_(false), word_last_(false){}
 
   //init withot input range, wating for reset
-  Tokenizer(HashMap& wcontainer, HashMap& ncontainer)
-    :wcontainer_(wcontainer), ncontainer_(ncontainer){}
+  Tokenizer(){}
 
-  void clear() {
-    wtoken_.clear();
-    ntoken_.clear();
-#ifdef DEBUG2
-    nvec_.clear();
-    wvec_.clear();
-#endif
+  bool is_word_first() const {
+    return word_first_;
   }
 
+  bool is_word_last() const {
+    return word_last_;
+  }
   //for huffman purpose do not clear container 
   //we want to deal with differnt files but 
   //caculating status as one
-  void reset(Iterator first, Iterator last) {
+  void reset(Iterator first, Iterator last,
+             const WordFunc& wfunc = WordFunc(), 
+             const NonWordFunc& nfunc = NonWordFunc()) {
     first_ = first;
     last_ = last;
+    deal_word = wfunc;
+    deal_nonword = nfunc;
     word_first_ = false;
-    clear();
-  }
-
-  void add_nonword(Type& nword) {
-    ncontainer_[nword] += 1;
-#ifdef DEBUG2
-    nvec_.push_back(nword);
-#endif 
-  }
-
-  void add_word(Type& word) {
-    wcontainer_[word] += 1;
-#ifdef DEBUG2
-    wvec_.push_back(word);
-#endif 
+    word_last_ = false;
+    wtoken_.clear();
+    ntoken_.clear();
   }
 
   void split() {
@@ -126,12 +125,13 @@ public:
     }
     
     if (!wtoken_.empty()) {
-      add_word(wtoken_);
+      deal_word(wtoken_);
       wtoken_.clear();
+      word_last_ = true;  //the last one is a word
     }
 
     if (!ntoken_.empty()) {
-      add_nonword(ntoken_);
+      deal_nonword(ntoken_);
       ntoken_.clear();
     }
   }
@@ -153,7 +153,7 @@ public:
         } 
         else {
           //find a non word token
-          add_nonword(ntoken_);
+          deal_nonword(ntoken_);
           ntoken_.clear();
         }
       }
@@ -164,50 +164,25 @@ public:
       if (!wtoken_.empty() && 
           ( !(ishypen(*iter) && ntoken_.empty()))) {
         //find a word token
-        add_word(wtoken_);
+        deal_word(wtoken_);
         wtoken_.clear();
       }
       ntoken_.push_back(*iter);
     }
   }
   
-
-  void print(std::ostream& out = std::cout,
-             std::ostream& out2 = std::cout) 
-  {
-    using namespace std;
-    typedef typename HashMap::iterator Iter;
-    Iter end = wcontainer_.end();
-
-    for (Iter iter = wcontainer_.begin();iter != end; ++iter) {
-      out << setiosflags(ios::left) 
-          << setw(20) << iter->first 
-          << setw(20) << iter->second << endl;
-    }
-    end = ncontainer_.end();
-    for (Iter iter = ncontainer_.begin();iter != end; ++iter) {
-      out2 << setiosflags(ios::left) 
-           << setw(20) << iter->first 
-           << setw(20) << iter->second << endl;
-    }
-  }
 private:
-  Iterator first_;
-  Iterator last_;
-  
-  Type     wtoken_;      //word token 
-  Type     ntoken_;      //non word token
+  Iterator     first_;
+  Iterator     last_;
 
-  bool     word_first_;
+  WordFunc     deal_word;
+  NonWordFunc  deal_nonword;
   
-  HashMap&  wcontainer_; //word container
-  HashMap&  ncontainer_; //nonword container
+  Type         wtoken_;      //word token 
+  Type         ntoken_;      //non word token
 
-#ifdef DEBUG2
-  std::vector<std::string> wvec_; //word vector
-  std::vector<std::string> nvec_; //non word vector
-#endif
-  
+  bool         word_first_;  //the start is a word or not
+  bool         word_last_;   //the end is a word or not
 };
 
 

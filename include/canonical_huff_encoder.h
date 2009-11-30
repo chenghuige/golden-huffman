@@ -137,8 +137,9 @@ public:
 
   //will use reader_ and writer_
   void decode_file();
+
 protected:
-  unsigned int symbol_[CharSymbolNum];         //symbol less than 256
+  unsigned int symbol_[CharSymbolNum];         //symbol <= 257
   unsigned int start_pos_[64];       //encoding max length less than 32 TODO may > 32?
   unsigned int first_code_[64];
   

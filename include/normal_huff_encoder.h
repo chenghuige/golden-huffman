@@ -157,7 +157,7 @@ public:
 
   void encode_file()
   {
-    long pos = ftell(outfile_);      //The pos right after the head info of compressing
+    long long pos = ftell(outfile_);      //The pos right after the head info of compressinon
     Buffer writer(outfile_);
     writer.write_byte((unsigned char)(0));      //at last will store leftbit here
     writer.write_byte((unsigned char)(0));      //at last will store the last byte if leftbit > 0
