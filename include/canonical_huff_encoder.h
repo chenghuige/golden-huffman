@@ -154,14 +154,8 @@ namespace canonical_help {
  //5 4 3 2 1 to search 3.5 will return the pos poiting to 3, the first val 3.5 >= 
   //search 3 will return the same pos
   //linear search
-#ifdef DEBUG
-unsigned long long  search_times = 0;
-#endif
   int cfind(unsigned int vec[], unsigned int start, unsigned int val) {
     while(val < vec[start]) {
-#ifdef DEBUG
-      search_times++;
-#endif
       ++start;
     }
     return start;
@@ -185,9 +179,8 @@ public:
   using   Base::symbol_;
   using   Base::max_len_;
   using   Base::min_len_;
-  //TODO using canonical_help::cfind; //wrong!
 
-   void decode_file();
+  void decode_file();
 };
 
 template<typename _KeyType = unsigned char, int TableLength = 8>
