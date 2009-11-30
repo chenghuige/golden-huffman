@@ -35,6 +35,8 @@
 
 #include <heap_func.h> //for shift down
 
+#include <canonical_huff_encoder.h>
+
 
 namespace glzip {
 
@@ -651,6 +653,191 @@ protected:
 
   std::string infile_name_;
   std::string outfile_name_;
+};
+
+template<>
+class FastCanonicalHuffDecoder<std::string> : public CanonicalHuffDecoder<std::string> {
+public:
+  FastCanonicalHuffDecoder(const std::string& infile_name, std::string& outfile_name)
+      : CanonicalHuffDecoder<std::string>(infile_name, outfile_name){}
+  
+  void decode_file()
+  {
+#ifdef DEBUG
+    std::cout << "decoding in huff word fast canonical" << std::endl;
+#endif
+    Buffer reader(this->infile_); 
+    Buffer writer(this->outfile_);
+
+    std::string end_mark;
+    end_mark.push_back(-1);
+
+    const unsigned int buf_size = 32;  //can use max_len_ as well! TODO try comprare
+   
+    //------------------------------------------------first make first_code_ "left_justified"
+    //like 0101 ->        0101----------  32 bits
+    for (int j =0; j < 2; j++) {
+      for (int i = min_len_[j]; i <= max_len_[j]; i++)  
+        first_code_[j][i] <<= (buf_size - i);
+    }
+  
+    //assume the encoding length do not exceed 32, we can 
+    //use unsigned it ro represent the encoding value
+    //-------------------------------------------------key process
+    int now = 0;
+    int other = 1;
+
+    BitBuffer bit_buffer(reader);
+  
+    unsigned int v = bit_buffer.read_bits(buf_size);
+  
+    unsigned int len = canonical_help::cfind(first_code_[now], min_len_[now], v);  //from length 1, find the first that v >= it
+  
+    std::string symbol 
+      = symbol_[now][ symbol_index_[now][ start_pos_[now][len] + ((v - first_code_[now][len]) >> (buf_size - len))]];
+    std::swap(now, other);
+    while(symbol != end_mark) {
+      writer.write_symbol_string(symbol);
+      v <<= len;                                         
+      v |= bit_buffer.read_bits(len);  //insert the next bs - len bits from file stream
+      len = canonical_help::cfind(first_code_[now], min_len_[now], v);
+      symbol = 
+        symbol_[now][ symbol_index_[now][ start_pos_[now][len] + ((v - first_code_[now][len]) >> (buf_size - len))]];
+      std::swap(now, other);
+    }
+  
+    writer.flush_buf();
+    fflush(this->outfile_);
+
+  }
+};
+
+//TODO FIXME better arrage like set up table resue
+//template<int TableLength = 8>
+//class TableCanonicalHuffDecoder<std::string, TableLength> : public CanonicalHuffDecoder<std::string> {
+//error default template arguments may not be used in partial specializations FIXME
+#define  TableLength  8
+class TableCanonicalHuffWordDecoder : public CanonicalHuffDecoder<std::string> {
+public:
+  TableCanonicalHuffWordDecoder(const std::string& infile_name, std::string& outfile_name)
+      : CanonicalHuffDecoder<std::string>(infile_name, outfile_name){}
+  
+  //the set up lookuptable cost will be o(n) n is symbol num
+  //it must be called before firest_code_[] is left justified
+  //TODO may be static function
+  void setup_lookup_table(unsigned int lookup_table_[],
+                          unsigned int first_code_[],
+                          int max_len_, int min_len_)
+  { 
+     //----------------------------------1 all zero
+    int entry_num = (1 << TableLength);
+    for (int i = 0; i < entry_num; i ++) {
+      lookup_table_[i] = 0;
+    }
+     
+     //----------------------------------2 find all min length for all symbols
+     //i is length, j is code
+     //Important  i << (-2) != i >> 2 so always shift positive num! 
+    unsigned int code, next_code;
+    for (int i = max_len_; i > min_len_; i--) {
+      code = first_code_[i];
+      next_code = (first_code_[i - 1] << 1); //for caculating how many symbols are of encoding length i
+      if (TableLength >= i) {
+         for (unsigned int j = code; j < next_code; j++) {
+           lookup_table_[(j << (TableLength - i))] = i;
+         }
+       } else {
+         for (unsigned int j = code; j < next_code; j++) {
+           lookup_table_[(j >> (i - TableLength))] = i;
+         }
+       }
+     }
+     //deal with min_len_, from like 10 -> 11 notice the end must be all 1 ,how to prove?
+     for (unsigned int j = first_code_[min_len_]; j < (1 << min_len_); j++)
+       lookup_table_[(j << (TableLength - min_len_))] = min_len_;
+  
+  #ifdef DEBUG3
+     for (int i = 0; i < entry_num; i++) {
+       if (lookup_table_[i]) {
+         std::cout << std::bitset<8>(i) << " " << lookup_table_[i] << std::endl;
+       }
+     }
+  #endif
+  
+     //----------------------------------3 fill all the possible positions like 'symbol + 010' to form 8
+     //while before you only have 'symbol + 000' set to the coding length of symbol here 5
+     code = 0;
+     for (int i = 0; i < entry_num; i++) {
+       if (lookup_table_[i] == 0) {
+         lookup_table_[i] = code;
+       } else {
+         code = lookup_table_[i];
+       }
+     }
+    
+  }
+
+  void decode_file()
+  {
+    for (int i = 0; i < 2; i++)
+      setup_lookup_table(lookup_table_[i], first_code_[i], max_len_[i], min_len_[i]);
+
+#ifdef DEBUG
+    std::cout << "decoding in huff word canonical using lookuptable" << std::endl;
+#endif
+    Buffer reader(this->infile_); 
+    Buffer writer(this->outfile_);
+
+    std::string end_mark;
+    end_mark.push_back(-1);
+
+    const unsigned int buf_size = 32;  //or max_len_ but since using int can not exceed 32
+
+    //32bit left justified
+    for (int j = 0; j < 2; j++) {
+      for (int i = min_len_[j]; i <= max_len_[j]; i++)  
+        first_code_[j][i] <<= (buf_size - i);
+    }
+
+    //assume the encoding length do not exceed 32, we can 
+    //use unsigned it ro represent the encoding value
+    //-------------------------------------------------key process
+    int now = 0;
+    int other = 1;
+    BitBuffer bit_buffer(reader);
+
+    unsigned int v = bit_buffer.read_bits(buf_size);
+
+    unsigned int len = canonical_help::cfind(first_code_[now], min_len_[now], v);  //from length 1, find the first that v >= it
+
+    std::string symbol = 
+      symbol_[now][ symbol_index_[now][ start_pos_[now][len] + ((v - first_code_[now][len]) >> (buf_size - len))]];
+    
+    std::swap(now, other);
+
+    unsigned int vx;
+    while (symbol != end_mark) {
+      writer.write_symbol_string(symbol);
+      v <<= len;                                         
+      v |= bit_buffer.read_bits(len);       //insert the next len bits from file stream
+      vx = (v >> (buf_size - TableLength)); //uper 8 bits of v
+      len = lookup_table_[now][vx];              //first search in the look up table
+      if (len > TableLength) {                //have to search again from len
+        while (v < first_code_[now][len])
+          len++;
+      }
+      symbol = 
+        symbol_[now][ symbol_index_[now][ start_pos_[now][len] + ((v - first_code_[now][len]) >> (buf_size - len))]];
+      std::swap(now, other);
+    }
+
+    writer.flush_buf();
+    fflush(this->outfile_);
+  }
+
+
+private:
+  unsigned int lookup_table_[2][1 << TableLength];  //now be 2^8 256
 };
 
 }  //----end of namespace glzip

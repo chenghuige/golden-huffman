@@ -99,6 +99,22 @@ void test_decompress()
   decompressor.decompress();
 }
 
+void test_fast_decompress()
+{
+  infile_name2 = outfile_name;
+  outfile_name2.clear();
+  Decompressor<FastCanonicalHuffDecoder<std::string> > decompressor(infile_name2, outfile_name2);
+  decompressor.decompress();
+}
+
+void test_table_decompress()
+{
+  infile_name2 = outfile_name;
+  outfile_name2.clear();
+  Decompressor<TableCanonicalHuffWordDecoder > decompressor(infile_name2, outfile_name2);
+  decompressor.decompress();
+}
+
 
 TEST(compress, perf)
 {
@@ -111,6 +127,26 @@ TEST(decompress, perf)
 }
 
 TEST(result, func)
+{
+  func_test(); 
+}
+
+TEST(fast_decompress, perf)
+{
+  test_fast_decompress();
+}
+
+TEST(fast_result, func)
+{
+  func_test(); 
+}
+
+TEST(table_decompress, perf)
+{
+  test_table_decompress();
+}
+
+TEST(table_result, func)
 {
   func_test(); 
 }

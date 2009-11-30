@@ -456,9 +456,6 @@ void FastCanonicalHuffDecoder<_KeyType>::decode_file()
     symbol = symbol_[start_pos_[len] + ((v - first_code_[len]) >> (buf_size - len))];
   }
 
-#ifdef DEBUG
-  std::cout << "searching times in cfind is " << canonical_help::search_times << std::endl;
-#endif
   writer_.flush_buf();
   fflush(this->outfile_);
 } 
@@ -566,13 +563,9 @@ decode_file()
    symbol = symbol_[start_pos_[len] + ((v - first_code_[len]) >> (buf_size - len))];
  }
 
-#ifdef DEBUG
- std::cout << "searching times in cfind is " << canonical_help::search_times << std::endl;
-#endif
-
  writer_.flush_buf();
  fflush(this->outfile_);
-  }
+}
 
 }  //----end of namespace glzip
 
